@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Architectures — Least Squares</title>
+  <meta name="description" content="Diagrammed breakdowns of modern AI architectures — transformers, diffusion, MoE, and beyond." />
+  <meta property="og:title" content="Architectures — Least Squares" />
+  <meta property="og:description" content="Diagrammed breakdowns of modern AI architectures." />
+  <meta property="og:url" content="/architectures" />
+  <link rel="canonical" href="/architectures" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="inner">
+    <a href="index.html" class="logo font-display">Least Squares</a>
+    <nav>
+      <a href="architectures.html" class="active">Architectures</a>
+      <a href="system-design.html">System Design</a>
+      <a href="ml-design.html">ML Design</a>
+      <a href="about.html">About</a>
+    </nav>
+    <a href="https://www.youtube.com/" target="_blank" rel="noreferrer" class="subscribe-btn">
+      <span class="subscribe-label">Subscribe</span>
+      <span class="icon-circle">
+        <svg class="icon-arrow-right" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </span>
+    </a>
+    <button class="mobile-menu-btn" id="menuBtn" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="architectures.html">Architectures</a>
+    <a href="system-design.html">System Design</a>
+    <a href="ml-design.html">ML Design</a>
+    <a href="about.html">About</a>
+    <a href="https://www.youtube.com/" target="_blank" rel="noreferrer">Subscribe →</a>
+  </nav>
+</header>
+
+<!-- MAIN -->
+<div class="page-wrapper topic-page">
+  <main>
+    <section class="topic-hero">
+      <p class="topic-eyebrow">Pillar 01</p>
+      <h1 class="editorial-headline">Architectures</h1>
+      <p class="topic-intro">From the math of attention to the geometry of latent spaces — visual deep dives into the architectures powering modern AI.</p>
+    </section>
+
+    <section class="topic-entries">
+      <div class="topic-list">
+        <article class="topic-entry">
+          <span class="entry-num font-display">01</span>
+          <h2 class="entry-title font-display">Anatomy of a Transformer Block</h2>
+          <p class="entry-body">Embeddings, attention heads, residual streams and the FFN — annotated end to end.</p>
+        </article>
+        <article class="topic-entry">
+          <span class="entry-num font-display">02</span>
+          <h2 class="entry-title font-display">Diffusion Models, Demystified</h2>
+          <p class="entry-body">Forward noising, reverse denoising, classifier-free guidance, and where latent diffusion fits in.</p>
+        </article>
+        <article class="topic-entry">
+          <span class="entry-num font-display">03</span>
+          <h2 class="entry-title font-display">Mixture of Experts Routing</h2>
+          <p class="entry-body">Top-k gating, load balancing losses, and why MoE wins at scale.</p>
+        </article>
+        <article class="topic-entry">
+          <span class="entry-num font-display">04</span>
+          <h2 class="entry-title font-display">State Space &amp; Linear Attention</h2>
+          <p class="entry-body">Mamba, RWKV, and the post-quadratic frontier of sequence modeling.</p>
+        </article>
+      </div>
+      <p class="topic-footer-note">New breakdowns weekly · LinkedIn · Instagram · YouTube</p>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="inner">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h2 class="font-display">Let's build<br>the future,<br>together.</h2>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-label">Explore</p>
+          <ul>
+            <li><a href="architectures.html">Architectures</a></li>
+            <li><a href="system-design.html">System Design</a></li>
+            <li><a href="ml-design.html">ML Design</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-label">Follow</p>
+          <ul>
+            <li><a href="https://www.youtube.com/" target="_blank" rel="noreferrer">YouTube</a></li>
+            <li><a href="https://www.linkedin.com/" target="_blank" rel="noreferrer">LinkedIn</a></li>
+            <li><a href="https://www.instagram.com/" target="_blank" rel="noreferrer">Instagram</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p id="footer-year">© 2026 Least Squares. All rights reserved.</p>
+        <p>Visual breakdowns of ML &amp; AI systems.</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+  document.getElementById('menuBtn').addEventListener('click', function() {
+    document.getElementById('mobileNav').classList.toggle('open');
+  });
+  document.getElementById('footer-year').textContent =
+    '© ' + new Date().getFullYear() + ' Least Squares. All rights reserved.';
+</script>
+</body>
+</html>

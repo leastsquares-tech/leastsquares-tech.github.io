@@ -1,521 +1,308 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="utf-8">
-  <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <link href='https://fonts.googleapis.com/css?family=League Spartan' rel='stylesheet'>
-  <link href='https://fonts.googleapis.com/css?family=Quicksand' rel='stylesheet'>
-  <link id="u-theme-google-font" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,100i,300,300i,400,400i,500,500i,700,700i,900,900i|Open+Sans:300,300i,400,400i,500,500i,600,600i,700,700i,800,800i">
-  <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" crossorigin="anonymous" />
-  <link rel="stylesheet" href="https://cdn.materialdesignicons.com/5.9.55/css/materialdesignicons.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ionicons@5.5.3/dist/ionicons.min.css" integrity="sha384-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" crossorigin="anonymous" />
-
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title >leastsquares</title>
-  <script>
-    if (location.pathname.endsWith('.html')) {
-      const newPath = location.pathname.replace(/\.html$/, '');
-      window.history.replaceState({}, '', newPath);
-    }
-  </script>
-
-  
-  <meta content="" name="description">
-  <meta content="" name="keywords">
-
-  <!-- Favicons -->
-  <link href="assets/img/favicon.png" rel="icon">
-  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
-
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600;1,700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Raleway:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
-
-  <!-- Vendor CSS Files -->
-  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-  <link href="assets/vendor/aos/aos.css" rel="stylesheet">
-  <link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
-  <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
-
-  <!-- Template Main CSS File -->
-  <link href="assets/css/main.css" rel="stylesheet">
-
-  <!-- =======================================================
-  * Template Name: Impact
-  * Updated: May 30 2023 with Bootstrap v5.3.0
-  * Template URL: https://bootstrapmade.com/impact-bootstrap-business-website-template/
-  * Author: BootstrapMade.com
-  * License: https://bootstrapmade.com/license/
-  ======================================================== -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Least Squares — Visual breakdowns of ML & AI systems</title>
+  <meta name="description" content="Visual breakdowns of ML/AI architectures, system design, and ML design — annotated diagrams and first-principles analysis for engineers." />
+  <meta property="og:title" content="Least Squares — ML/AI Architectures & System Design" />
+  <meta property="og:description" content="Visual breakdowns of ML systems, RAG pipelines, and model internals." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/" />
+  <link rel="canonical" href="/" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
 
-  <!-- ======= Header ======= -->
-<!-- End Top Bar -->
+<!-- HEADER -->
+<header class="site-header">
+  <div class="inner">
+    <a href="index.html" class="logo font-display">Least Squares</a>
+    <nav>
+      <a href="architectures.html">Architectures</a>
+      <a href="system-design.html">System Design</a>
+      <a href="ml-design.html">ML Design</a>
+      <a href="about.html">About</a>
+    </nav>
+    <a href="https://www.youtube.com/" target="_blank" rel="noreferrer" class="subscribe-btn">
+      <span class="subscribe-label">Subscribe</span>
+      <span class="icon-circle">
+        <svg class="icon-arrow-right" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </span>
+    </a>
+    <button class="mobile-menu-btn" id="menuBtn" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="architectures.html">Architectures</a>
+    <a href="system-design.html">System Design</a>
+    <a href="ml-design.html">ML Design</a>
+    <a href="about.html">About</a>
+    <a href="https://www.youtube.com/" target="_blank" rel="noreferrer">Subscribe →</a>
+  </nav>
+</header>
 
-  <header id="header" class="header d-flex align-items-center" style="background: white;">
+<!-- MAIN -->
+<div class="page-wrapper">
+  <main>
 
-    <div class="container-fluid container-xl d-flex align-items-center justify-content-between">
-      <a href="index.html" class="logo d-flex align-items-center" style="height:500px;">
-        <!-- Uncomment the line below if you also wish to use an image logo -->
-        <!-- <img src="assets/img/logo.png" alt=""> -->
-        <!-- <div class="row"> -->
-        <!-- <h1 style="font-family: League Spartan; letter-spacing: -1px; font-size:60px; margin-top:10px; color: #fff5e1; font-weight: 2000;"><strong>least</strong><span>.</span></h1> -->
-        <!-- <h2 style="font-family: Quicksand; letter-spacing: -1px; font-size: 20px; color: black; margin-top: 30px;"><strong>squares</strong></h2> -->
-        <!-- </div> -->
-        <img src="assets/img/default-logo.png" style="size: 100%;"></a>
-      </a>
-      <nav id="navbar" class="navbar">
-        <ul>
-          <!-- <li><a href="#hero" style="color: rgb(0, 144, 254); font-family: Roboto; font-weight: 300;">Home</a></li> -->
-          
-          <li><a href="#Research" style="color: rgb(0, 144, 254);font-family: Roboto;font-weight: 300;">Research</a></li>
-          <li><a href="#Scope" style="color: rgb(0, 144, 254);font-family: Roboto;font-weight: 300;">Scope</a></li>
-          <li><a href="#about" style="color: rgb(0, 144, 254);font-family: Roboto;font-weight: 300;">About</a></li>
-          <li><a href="blog.html" style="color: rgb(0, 144, 254);font-family: Roboto;font-weight: 300;">Blogs</a></li>
-          <li><a href="tamil.html" style="color: rgb(0, 144, 254);font-family: Roboto;font-weight: 300;">Tamil</a></li>
-          <!-- <li><a href="#team">Team</a></li> -->
-          <!-- <li><a href="blog.html">Blog</a></li> -->
-          <!-- <li class="dropdown"><a href="#"><span>Drop Down</span> <i class="bi bi-chevron-down dropdown-indicator"></i></a> -->
-            <!-- <ul> -->
-              <!-- <li><a href="#">Drop Down 1</a></li> -->
-              <!-- <li class="dropdown"><a href="#"><span>Deep Drop Down</span> <i class="bi bi-chevron-down dropdown-indicator"></i></a>
-                <ul>
-                  <li><a href="#">Deep Drop Down 1</a></li>
-                  <li><a href="#">Deep Drop Down 2</a></li>
-                  <li><a href="#">Deep Drop Down 3</a></li>
-                  <li><a href="#">Deep Drop Down 4</a></li>
-                  <li><a href="#">Deep Drop Down 5</a></li>
-                </ul>
-              </li>
-              <li><a href="#">Drop Down 2</a></li>
-              <li><a href="#">Drop Down 3</a></li>
-              <li><a href="#">Drop Down 4</a></li>
-            </ul>
-          </li> -->
-          <!-- <li><a href="#contact">Contact</a></li> -->
-        </ul>
-      </nav><!-- .navbar -->
-
-      <i class="mobile-nav-toggle mobile-nav-show bi bi-list"></i>
-      <i class="mobile-nav-toggle mobile-nav-hide d-none bi bi-x"></i>
-
-    </div>
-  </header><!-- End Header -->
-  <!-- End Header -->
-  <!--#07479d, #ba3f16-->
-  <!-- ======= Hero Section ======= -->
-  <section id="hero" class="hero" style="height: 800px; background-image: url(assets/img/revamped-bg.png); background-size: cover;">  <!--rgb(145, 36, 0);-->
-    <div class="container position-relative" style="margin-top: 5%;">
-      <div class="row gy-5" data-aos="fade-in">
-        <div class="col-lg-8 order-2 order-lg-1 d-flex flex-column justify-content-center text-center text-lg-start style="margin-left: -40px;">
-          <h2 style="font-family: Roboto; font-weight: 100;">Welcome<span></span>.</h2>
-          <p style="color: antiquewhite; font-family: Roboto; font-weight: 450; font-size: 50px;">Community for <br>Research & Learning</p>
-          <p style="color: rgb(255, 255, 255); font-family: Roboto; font-weight: 350; font-size: 20px;">A thriving community where Technology and Creativity intertwine. Experience a transformative journey of collaboration, growth, and boundless exploration within our thriving community.</p>
-          <div class="d-flex justify-content-center justify-content-lg-start">
-            <a href="#about" class="btn-get-started" style="margin-top: 5%;">Get Started</a>
-          </div>
-        </div>
-        <div class="col-lg-6 order-1 order-lg-2">
-        </div>
-      </div>
-    </div>
-    </div>
-    
-  </section>
-  <!-- End Hero Section -->
-
-  <main id="main">
-
-    <!-- ======= About Us Section ======= -->
-    <section id="about" class="about">
-      <div class="container" data-aos="fade-up">
-
-        <div class="section-header">
-          <h2 style="font-family: Roboto; font-weight: 170;">We Least Squares Community!</h2>
-          <!-- <p></p> -->
-        </div>
-
-        <div class="row gy-4">
-          <div class="col-lg-6">
-            <!-- <h3>Voluptatem dignissimos provident quasi corporis</h3> -->
-            <img src="assets/img/cubic1.jpg" class="img-fluid rounded-4 mb-4" alt="" style="height: 300px;">
-            <!-- <p>Ut fugiat ut sunt quia veniam. Voluptate perferendis perspiciatis quod nisi et. Placeat debitis quia recusandae odit et consequatur voluptatem. Dignissimos pariatur consectetur fugiat voluptas ea.</p> -->
-            <!-- <p>Temporibus nihil enim deserunt sed ea. Provident sit expedita aut cupiditate nihil vitae quo officia vel. Blanditiis eligendi possimus et in cum. Quidem eos ut sint rem veniam qui. Ut ut repellendus nobis tempore doloribus debitis explicabo similique sit. Accusantium sed ut omnis beatae neque deleniti repellendus.</p> -->
-          </div>
-          <div class="col-lg-6">
-            <div class="content ps-0 ps-lg-5">
-              <!-- <p class="fst-italic" style="font-family: Quicksand;">
-                At Least Square, we are not just a startup or a registered company. We are a passionate group of individuals who have come together to create a vibrant community dedicated to sharing educative and knowledgeable content in the realm of technology and beyond.
-              </p> -->
-              <!-- <ul>
-                <li><i class="bi bi-check-circle-fill"></i>We are a group of passionate individuals dedicated to sharing knowledge and educative content in the fields of technology, data science, AI, machine learning, IoT, and 3D Arts.</li>
-                <li><i class="bi bi-check-circle-fill"></i>Least Squares is committed to promoting continuous learning, personal growth, and staying at the forefront of technological advancements.</li>
-                <li><i class="bi bi-check-circle-fill"></i>Our community is centered around topics that drive innovation and curiosity. Whether you're interested in Data Science, Artificial Intelligence, Machine Learning, Internet of Things (IoT), 3D Arts, or any other cutting-edge fields, you've come to the right place.</li>
-                <li><i class="bi bi-check-circle-fill"></i>  Least Squares aims to be a thought leader in the technology space, providing valuable insights and contributing to the broader discourse in the industry.</li>
-              </ul> -->
-
-              <p style="color: black; font-family: Roboto; font-weight: 300; font-size: 18px; margin-top: 0%;">Unique Ideas And Solutions
-                Embark on a captivating journey into the heart of Least Squares, a dynamic community driven by our unwavering passion for Technology, Data science, AI, Machine learning, IoT, and 3D Arts. <br><br> Rooted in a relentless pursuit of knowledge and a deep desire to inspire, we are a vibrant collective of individuals dedicated to sharing our expertise and fostering growth.<br><br> As torchbearers of innovation, we continuously explore new frontiers, shaping the industry's landscape and propelling ourselves forward as trailblazers of transformative thought.</p>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="inner">
+        <p class="eyebrow">ML / AI · Visual essays · Est. 2026</p>
+        <h1 class="editorial-headline">Least<br>Squares.</h1>
+        <div class="hero-bottom">
+          <div class="hero-right">
+            <p class="hero-desc">
+              Visual breakdowns of modern machine learning systems —
+              architectures, system design, and ML design, drawn from
+              first principles for engineers who build things.
+            </p>
+            <div class="hero-actions">
+              <a href="https://www.youtube.com/" target="_blank" rel="noreferrer" class="yt-link">
+                Watch on YouTube
+                <span class="icon-circle">
+                  <svg class="icon-arrow-right" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </span>
+              </a>
+              <a href="about.html" class="about-link">About</a>
             </div>
           </div>
         </div>
-
-      </div>
-    </section><!-- End About Us Section -->
-
-    <!-- ======= Clients Section ======= -->
-    <section id="clients" class="clients">
-
-      <div class="section-header">
-        <h2 style="font-family: Roboto; font-weight: 170;">We talk  on 20+ Tech</h2>
-        <!-- <p></p> -->
       </div>
 
-      <div class="container" data-aos="zoom-out">
+      <!-- Marquee -->
+      <div class="marquee-band">
+        <div class="marquee-inner">
+          <!-- Triplicated for infinite loop -->
+          <span class="marquee-item">AI<span class="marquee-dot"></span></span>
+          <span class="marquee-item">ML<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Systems<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Design<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Architecture<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Inference<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Training<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Agents<span class="marquee-dot"></span></span>
+          <span class="marquee-item">RAG<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Vectors<span class="marquee-dot"></span></span>
+          <!-- repeat 2 -->
+          <span class="marquee-item">AI<span class="marquee-dot"></span></span>
+          <span class="marquee-item">ML<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Systems<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Design<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Architecture<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Inference<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Training<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Agents<span class="marquee-dot"></span></span>
+          <span class="marquee-item">RAG<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Vectors<span class="marquee-dot"></span></span>
+          <!-- repeat 3 -->
+          <span class="marquee-item">AI<span class="marquee-dot"></span></span>
+          <span class="marquee-item">ML<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Systems<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Design<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Architecture<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Inference<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Training<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Agents<span class="marquee-dot"></span></span>
+          <span class="marquee-item">RAG<span class="marquee-dot"></span></span>
+          <span class="marquee-item">Vectors<span class="marquee-dot"></span></span>
+        </div>
+      </div>
+    </section>
 
-        <div class="clients-slider swiper">
-          <div class="swiper-wrapper align-items-center">
-            <div class="swiper-slide"><img src="assets/img/clients/client-1.png" class="img-fluid" alt=""></div>
-            <div class="swiper-slide"><img src="assets/img/clients/client-2.png" class="img-fluid" alt=""></div>
-            <div class="swiper-slide"><img src="assets/img/clients/client-3.png" class="img-fluid" alt=""></div>
-            <div class="swiper-slide"><img src="assets/img/clients/client-4.png" class="img-fluid" alt=""></div>
-            <div class="swiper-slide"><img src="assets/img/clients/client-5.png" class="img-fluid" alt=""></div>
-            <div class="swiper-slide"><img src="assets/img/clients/client-6.png" class="img-fluid" alt=""></div>
-            <div class="swiper-slide"><img src="assets/img/clients/client-7.png" class="img-fluid" alt=""></div>
-            <div class="swiper-slide"><img src="assets/img/clients/client-8.png" class="img-fluid" alt=""></div>
-            <div class="swiper-slide"><img src="assets/img/clients/client-9.png" class="img-fluid" alt=""></div>
-            <div class="swiper-slide"><img src="assets/img/clients/client-10.png" class="img-fluid" alt=""></div>
-            <div class="swiper-slide"><img src="assets/img/clients/client-11.png" class="img-fluid" alt=""></div>
-            <!-- <div class="swiper-slide"><img src="assets/img/clients/client-12.png" class="img-fluid" alt=""></div> -->
-            <div class="swiper-slide"><img src="assets/img/clients/client-13.png" class="img-fluid" alt=""></div>
-            <div class="swiper-slide"><img src="assets/img/clients/client-14.png" class="img-fluid" alt=""></div>
-            <div class="swiper-slide"><img src="assets/img/clients/client-15.png" class="img-fluid" alt=""></div>
-            <div class="swiper-slide"><img src="assets/img/clients/client-16.png" class="img-fluid" alt=""></div>
-            <div class="swiper-slide"><img src="assets/img/clients/client-17.png" class="img-fluid" alt=""></div>
-            <div class="swiper-slide"><img src="assets/img/clients/client-18.png" class="img-fluid" alt=""></div>
-            <div class="swiper-slide"><img src="assets/img/clients/client-19.png" class="img-fluid" alt=""></div>
-            <div class="swiper-slide"><img src="assets/img/clients/client-20.png" class="img-fluid" alt=""></div>
-            
+    <!-- Pillars -->
+    <section class="pillars-section">
+      <div class="pillars-header">
+        <p class="pillars-label">What we cover</p>
+        <h2 class="pillars-headline">
+          Three pillars.<br>
+          <span class="muted">One mission — make hard systems legible.</span>
+        </h2>
+      </div>
+      <div class="pillars-list">
+        <a href="architectures.html" class="pillar-row">
+          <span class="pillar-num font-display">01</span>
+          <h3 class="pillar-title font-display">Architectures</h3>
+          <p class="pillar-body">Transformer internals, diffusion stacks, MoE routing — diagrammed from first principles.</p>
+          <span class="pillar-arrow">
+            <svg class="icon-arrow-up-right" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+          </span>
+        </a>
+        <a href="system-design.html" class="pillar-row">
+          <span class="pillar-num font-display">02</span>
+          <h3 class="pillar-title font-display">System Design</h3>
+          <p class="pillar-body">Inference pipelines, vector DBs, distributed training — how production ML actually scales.</p>
+          <span class="pillar-arrow">
+            <svg class="icon-arrow-up-right" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+          </span>
+        </a>
+        <a href="ml-design.html" class="pillar-row">
+          <span class="pillar-num font-display">03</span>
+          <h3 class="pillar-title font-display">ML Design</h3>
+          <p class="pillar-body">End-to-end patterns for ranking, recommendations, RAG, and agentic workflows.</p>
+          <span class="pillar-arrow">
+            <svg class="icon-arrow-up-right" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+          </span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Visual Essays -->
+    <section class="essays-section">
+      <div class="essays-header">
+        <h2 class="editorial-headline">Visual essays</h2>
+        <span class="recent-label">Recent</span>
+      </div>
+      <div class="essays-grid">
+        <article class="essay-card">
+          <div class="essay-img-wrap">
+            <img src="assets/diagram-transformer.jpg" alt="Why Transformers scale better than we thought" loading="lazy" />
           </div>
-        </div>
-
-      </div>
-    </section><!-- End Clients Section -->
-
-
-    <!-- ======= Our Research Section ======= -->
-    <section id="Research" class="services sections-bg" >
-      <div class="container" data-aos="fade-up">
-
-        <div class="section-header">
-          <h2 style="font-family: Roboto; font-weight: 170;" >Our Research Pursuits</h2>
-          <p style="font-family: Roboto; font-weight: 400;">We commit ourselves to various research endeavors that drive innovation, advance knowledge, and shape the future of technology and beyond.</p>
-        </div>
-
-        <div class="row gy-4" data-aos="fade-up" data-aos-delay="100">
-
-          <div class="col-lg-4 col-md-6">
-            <div class="service-item  position-relative">
-              <div class="icon">
-                <i class="bi bi-activity"></i>
-              </div>
-              <h3 style="font-family: Roboto; font-weight: 400;">AI in Healthcare</h3>
-              <p>Revolutionizing diagnostics by leveraging advanced algorithms to analyze medical data. It enhances accuracy in interpretation, provides intelligent clinical decision support, and improves patient record management. With its transformative capabilities, AI is shaping the future of healthcare diagnostics.</p>
-              <!-- <a href="#" class="readmore stretched-link">Read more <i class="bi bi-arrow-right"></i></a> -->
-            </div>
-          </div><!-- End Service Item -->
-
-          <div class="col-lg-4 col-md-6">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="bi bi-currency-rupee"></i>
-              </div>
-              <h3 style="font-family: Roboto; font-weight: 400;">AI in Finance & Auditing</h3>
-              <p>Enabling efficient risk assessment, fraud detection, and investment analysis. AI systems automate manual processes, improve decision-making, and enhance the accuracy and reliability of financial audits. With its transformative potential, AI is reshaping the way financial institutions operate and ensuring greater transparency and efficiency in the financial sector.</p>
-              <!-- <a href="#" class="readmore stretched-link">Read more <i class="bi bi-arrow-right"></i></a> -->
-            </div>
-          </div><!-- End Service Item -->
-
-          <div class="col-lg-4 col-md-6">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="bi bi-buildings"></i>
-              </div>
-              <h3 style="font-family: Roboto;font-weight: 400;">City Intelligent System (CIS)</h3>
-              <p>Implementing advanced data-gathering techniques and utilizing sophisticated analytics, the system aims to enhance preparedness and response strategies, enabling cities to effectively manage infrequent occurrences such as natural disasters, pandemics, or major public events. This research aims to improve overall situational awareness and decision-making processes, leading to increased safety and resilience in urban environments.</p>
-              <!-- <a href="#" class="readmore stretched-link">Read more <i class="bi bi-arrow-right"></i></a> -->
-            </div>
-          </div><!-- End Service Item -->
-        </div>
-      </section>
-
-
-
-
-    <!-- ======= Our Scope Section ======= -->
-    <section id="Scope" class="services sections-bg" >
-      <div class="container" data-aos="fade-up">
-
-        <div class="section-header" style="margin-top: 0%;">
-          <h2 style="font-family: Roboto; font-weight: 170;" >Our Scope of Engagement</h2>
-          <p style="font-family: Roboto; font-weight: 400;">We leverage AI approaches to drive innovation, solve complex problems, and deliver cutting-edge solutions across diverse domains.</p>
-        </div>
-
-
-        <div class="row gy-4" data-aos="fade-up" data-aos-delay="100">
-
-<!--           <div class="col-lg-4 col-md-6">
-            <div class="service-item position-relative">
-              <img src="assets/img/AI.png" class="img-fluid rounded-4 mb-4" alt="" style="height: 200px; width: 500px; margin-bottom: 0%; align-items: center;"><!-- <a href="#" class="readmore stretched-link">Read more <i class="bi bi-arrow-right"></i></a> -->
-<!--             </div> -->
-<!--           </div><!-- End Service Item --> 
-
-<!--           <div class="col-lg-4 col-md-6">
-            <div class="service-item position-relative" >
-              <img src="assets/img/tamil.png" class="img-fluid rounded-4 mb-4" alt="" style="height: 130px; width: 240px; margin-top: 10%; margin-left: 15%; align-items: center;">
-            </div>
-          </div><!-- End Service Item --> 
-
-<!--           <div class="col-lg-4 col-md-6">
-            <div class="service-item position-relative" >
-              <img src="assets/img/DA.png" class="img-fluid rounded-4 mb-4" alt="" style="height: 200px; width: 500px; margin-bottom: 0%; align-items: center;"><!-- <a href="#" class="readmore stretched-link">Read more <i class="bi bi-arrow-right"></i></a> -->
-<!--             </div>
-          </div><!-- End Service Item --> 
-
-
-          <div class="col-lg-4 col-md-6">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="bi bi-lightbulb"></i>
-              </div>
-              <h3>Machine Learning</h3>
-              <p>We leverage Machine Learning to develop intelligent solutions that adapt and learn from data. By harnessing the power of algorithms like k-means clustering and random forests, support vector machines, and decision trees, we build models that enable accurate predictions, pattern recognition, and anomaly detection to uncover valuable insights from complex datasets.</p>
-              <!-- <a href="#" class="readmore stretched-link">Read more <i class="bi bi-arrow-right"></i></a> -->
-            </div>
-          </div><!-- End Service Item -->
-
-          <div class="col-lg-4 col-md-6">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="bi bi-share"></i>
-              </div>
-              <h3>Deep Learning</h3>
-              <p>We harness the potential of Deep Learning to revolutionize the way machines understand and process complex information by employing deep neural networks, convolutional neural networks (CNNs), and recurrent neural networks (RNNs). We enable systems to learn hierarchical representations, and perform image recognition, natural language processing, and sequence modeling tasks.</p>
-              <!-- <a href="#" class="readmore stretched-link">Read more <i class="bi bi-arrow-right"></i></a> -->
-            </div>
-          </div><!-- End Service Item -->
-
-          <div class="col-lg-4 col-md-6">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="bi bi-body-text"></i>
-              </div>
-              <h3>Natural Language Processing</h3>
-              <p>Natural Language Processing (NLP) empowers machines with the ability to understand and interpret human language. Through techniques like sentiment analysis, named entity recognition, and part-of-speech tagging, we enable sentiment analysis, text classification, and information extraction. Leveraging algorithms such as recurrent neural networks (RNNs), long short-term memory (LSTM), and transformer models like BERT and GPT, we build advanced language models capable of language generation, question answering, and language translation.</p>
-              <!-- <a href="#" class="readmore stretched-link">Read more <i class="bi bi-arrow-right"></i></a> -->
-            </div>
-          </div><!-- End Service Item -->
-
-
-          <div class="col-lg-4 col-md-6">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="bi bi-cloud"></i>
-              </div>
-              <h3>IoT</h3>
-              <p>IoT enables the interconnection of physical devices, collecting and exchanging data to facilitate automation, monitoring, and control. By leveraging IoT, can optimize processes, enhance efficiency, and gain real-time insights, leading to improved decision-making, cost savings, and enhanced user experiences.</p>
-              <!-- <a href="#" class="readmore stretched-link">Read more <i class="bi bi-arrow-right"></i></a> -->
-            </div>
-          </div><!-- End Service Item -->
-
-
-          <div class="col-lg-4 col-md-6">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="bi bi-eye"></i>
-              </div>
-              <h3>Computer Vision</h3>
-              <p>By leveraging Computer Vision, can explore groundbreaking avenues in image analysis, pattern recognition, and visual understanding. We delve into areas such as object tracking, scene understanding, and image synthesis, pushing the boundaries of computer vision algorithms and methodologies.</p>
-              <!-- <a href="#" class="readmore stretched-link">Read more <i class="bi bi-arrow-right"></i></a> -->
-            </div>
-          </div><!-- End Service Item -->
-
-
-          <div class="col-lg-4 col-md-6">
-            <div class="service-item position-relative">
-              <div class="icon">
-                <i class="bi bi-box"></i>
-              </div>
-              <h3>3D Modelling</h3>
-              <p>We also delve into the realm of 3D arts and 3D modeling, where we explore the intersection of creativity and technology. Through advanced techniques and tools, we craft immersive visual experiences, architectural visualizations, and realistic virtual environments. By pushing the boundaries of 3D modeling, we bring concepts to life, empower artistic expression, and unlock new possibilities for industries such as entertainment, architecture, and product design. Our expertise in 3D arts and modeling fuel innovation, enabling us to create captivating and visually stunning digital content.</p>
-              <!-- <a href="#" class="readmore stretched-link">Read more <i class="bi bi-arrow-right"></i></a> -->
-            </div>
-          </div><!-- End Service Item -->
-        </div>
-      </section>
-
-
-      
-      
-
-
-    <!-- ======= Portfolio Section ======= -->
-    <section id="portfolio" class="portfolio sections-bg">
-      <div class="container" data-aos="fade-up">
-
-        <div class="section-header" style="margin-top: 0%;">
-          <h2 style="font-family: Roboto; font-weight: 170;" >Featured</h2>
-          <p style="font-family: Roboto; font-weight: 400;"></p>
-        </div>
-
-        <div class="portfolio-isotope" data-portfolio-filter="*" data-portfolio-layout="masonry" data-portfolio-sort="original-order" data-aos="fade-up" data-aos-delay="100">
-
-          <!-- <div>
-            <ul class="portfolio-flters">
-              <li data-filter="*" class="filter-active">All</li>
-              <li data-filter=".filter-app">App</li>
-              <li data-filter=".filter-product">Product</li>
-              <li data-filter=".filter-branding">Branding</li>
-              <li data-filter=".filter-books">Books</li>
-            </ul>End Portfolio Filters
-          </div> -->
-
-          <div class="row gy-4 portfolio-container">
-
-            <div class="col-xl-4 col-md-6 portfolio-item filter-app">
-              <div class="portfolio-wrap">
-                <a href="assets/img/contents.png" data-gallery="portfolio-gallery-app" class="glightbox"><img src="assets/img/contents.png" class="img-fluid" alt=""></a>
-                <div class="portfolio-info">
-                  <h4><a href="" title="More Details">Contents</a></h4>
-                  <p>We possess a dedicated content vertical that meticulously dissects numerous intricate concepts</p>
-                </div>
-              </div>
-            </div><!-- End Portfolio Item -->
-
-            <div class="col-xl-4 col-md-6 portfolio-item filter-product">
-              <div class="portfolio-wrap">
-                <a href="assets/img/3dworks.png" data-gallery="portfolio-gallery-app" class="glightbox"><img src="assets/img/3dworks.png" class="img-fluid" alt=""></a>
-                <div class="portfolio-info">
-                  <h4><a href="" title="More Details">3D Works</a></h4>
-                  <p>Designed and rendered with the state-of-the-art 3D Modelling tools </p>
-                </div>
-              </div>
-            </div><!-- End Portfolio Item -->         
-          </div><!-- End Portfolio Container -->
-
-        </div>
-
-      </div>
-    </section><!-- End Portfolio Section -->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  <!-- ======= Footer ======= -->
-  <footer id="footer" class="footer" style="background: rgb(255, 255, 255);">
-
-    <div class="container">
-      <div class="row gy-4">
-        <div class="col-lg-5 col-md-12 footer-info">
-          <img src="assets/img/default-logo.png" style="width: 250px; height: 70px; margin-left: 0px;">
-          <!-- <p>Cras fermentum odio eu feugiat lide par naso tierra. Justo eget nada terra videa magna derita valies darta donna mare fermentum iaculis eu non diam phasellus.</p> -->
-          <div class="social-links d-flex mt-4">
-            <!-- <a href="#" class="twitter"><i class="bi bi-twitter"></i></a> -->
-            <a href="mailto:support@leastsquares.in" class="facebook"><i class="bi bi-envelope-fill" style="color: rgb(0, 144, 254);"></i></a>
-            <a href="https://www.linkedin.com/company/least-squares/" class="linkedin"><i class="bi bi-linkedin" style="color: rgb(0, 144, 254);"></i></a>
-            <a href="https://www.instagram.com/leastsquares.in/" class="instagram"><i class="bi bi-instagram" style="color: rgb(0, 144, 254);"></i></a>
+          <p class="essay-tag">Architecture</p>
+          <h3 class="essay-title font-display">Why Transformers scale better than we thought</h3>
+          <p class="essay-body">Exploring the quadratic bottleneck and the emergence of linear-time alternatives.</p>
+        </article>
+        <article class="essay-card">
+          <div class="essay-img-wrap">
+            <img src="assets/diagram-rag.jpg" alt="The hidden costs of RAG in production" loading="lazy" />
           </div>
+          <p class="essay-tag">Systems</p>
+          <h3 class="essay-title font-display">The hidden costs of RAG in production</h3>
+          <p class="essay-body">Latency trade-offs between dense retrieval, semantic caching, and long-context models.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Video Section -->
+    <section class="video-section">
+      <div class="inner">
+        <div class="video-header">
+          <p class="video-label">YouTube</p>
+          <h2 class="video-headline editorial-headline">
+            Watch the systems<br>come apart.
+          </h2>
         </div>
-
-        <div class="col-lg-2 col-6 footer-links">
-          <h4 style="color: rgb(0, 144, 254);">Useful Links</h4>
-          <ul>
-            <li><a href="#hero" style="color: rgb(0, 144, 254);">Home</a></li>
-            <li><a href="#about" style="color: rgb(0, 144, 254);">About us</a></li>
-            <li><a href="#Research" style="color: rgb(0, 144, 254);">Research</a></li>
-            <li><a href="#scope" style="color: rgb(0, 144, 254);">Scope</a></li>
-            <!-- <li><a href="#">Privacy policy</a></li> -->
-          </ul>
+        <div class="video-grid">
+          <a href="https://www.youtube.com/" target="_blank" rel="noreferrer" class="video-card">
+            <div class="video-thumb">
+              <img src="assets/yt-distributed.jpg" alt="Distributed Training Basics" loading="lazy" />
+              <span class="video-duration">12:45</span>
+            </div>
+            <p class="video-title">Distributed Training Basics</p>
+          </a>
+          <a href="https://www.youtube.com/" target="_blank" rel="noreferrer" class="video-card">
+            <div class="video-thumb">
+              <img src="assets/yt-gpu.jpg" alt="GPU Memory Optimization" loading="lazy" />
+              <span class="video-duration">18:20</span>
+            </div>
+            <p class="video-title">GPU Memory Optimization</p>
+          </a>
+          <a href="https://www.youtube.com/" target="_blank" rel="noreferrer" class="video-card">
+            <div class="video-thumb">
+              <img src="assets/yt-mlops.jpg" alt="MLOps in Production" loading="lazy" />
+              <span class="video-duration">22:10</span>
+            </div>
+            <p class="video-title">MLOps in Production</p>
+          </a>
+          <a href="https://www.youtube.com/" target="_blank" rel="noreferrer" class="video-card">
+            <div class="video-thumb">
+              <img src="assets/yt-vectordb.jpg" alt="Vector Database Internals" loading="lazy" />
+              <span class="video-duration">15:30</span>
+            </div>
+            <p class="video-title">Vector Database Internals</p>
+          </a>
         </div>
+        <div class="video-cta">
+          <a href="https://www.youtube.com/" target="_blank" rel="noreferrer">
+            See all videos
+            <span class="icon-circle">
+              <svg class="icon-arrow-right" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </span>
+          </a>
+        </div>
+      </div>
+    </section>
 
-        <!-- <div class="col-lg-2 col-6 footer-links">
-          <h4>Our Services</h4>
-          <ul>
-            <li><a href="#">Web Design</a></li>
-            <li><a href="#">Web Development</a></li>
-            <li><a href="#">Product Management</a></li>
-            <li><a href="#">Marketing</a></li>
-            <li><a href="#">Graphic Design</a></li>
-          </ul>
-        </div> -->
-
-        <div class="col-lg-3 col-md-12 footer-contact text-center text-md-start">
-          <h4 style="color: rgb(0, 144, 254);">Contact Us</h4>
-          <p style="color: rgb(0, 144, 254);">
-            <!-- A108 Adam Street <br>
-            New York, NY 535022<br>
-            United States <br><br> -->
-            <!-- <strong >Phone:</strong><br> -->
-            <strong>Email:</strong>&nbsp;support@leastsquares.in<br>
-            <!-- <strong>Linkedin:</strong>&nbsp;<br> -->
+    <!-- Social / Newsletter CTA -->
+    <section class="social-section">
+      <div class="social-grid">
+        <div class="social-left">
+          <p class="social-eyebrow">Join</p>
+          <h2 class="social-headline editorial-headline">
+            One diagram,<br>every week.
+          </h2>
+          <p class="social-desc">
+            Daily on LinkedIn and Instagram. Long-form on YouTube. No fluff, no funnels — just systems, drawn out.
           </p>
-
         </div>
+        <div class="social-right">
+          <a href="https://www.youtube.com/" target="_blank" rel="noreferrer" class="social-link">
+            <span>YouTube</span>
+            <span class="icon-circle">
+              <svg class="icon-arrow-up-right-sm" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            </span>
+          </a>
+          <a href="https://www.linkedin.com/" target="_blank" rel="noreferrer" class="social-link">
+            <span>LinkedIn</span>
+            <span class="icon-circle">
+              <svg class="icon-arrow-up-right-sm" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            </span>
+          </a>
+          <a href="https://www.instagram.com/" target="_blank" rel="noreferrer" class="social-link">
+            <span>Instagram</span>
+            <span class="icon-circle">
+              <svg class="icon-arrow-up-right-sm" viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            </span>
+          </a>
+        </div>
+      </div>
+    </section>
 
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="inner">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h2 class="font-display">Let's build<br>the future,<br>together.</h2>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-label">Explore</p>
+          <ul>
+            <li><a href="architectures.html">Architectures</a></li>
+            <li><a href="system-design.html">System Design</a></li>
+            <li><a href="ml-design.html">ML Design</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-label">Follow</p>
+          <ul>
+            <li><a href="https://www.youtube.com/" target="_blank" rel="noreferrer">YouTube</a></li>
+            <li><a href="https://www.linkedin.com/" target="_blank" rel="noreferrer">LinkedIn</a></li>
+            <li><a href="https://www.instagram.com/" target="_blank" rel="noreferrer">Instagram</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p id="footer-year">© 2026 Least Squares. All rights reserved.</p>
+        <p>Visual breakdowns of ML &amp; AI systems.</p>
       </div>
     </div>
+  </footer>
+</div>
 
-    <div class="container mt-4">
-      <div class="copyright" style="color: rgb(0, 144, 254);">
-        &copy; Copyright <strong><span>leastsquares.in</span></strong>. All Rights Reserved
-      </div>
-      <div class="credits">
-        <!-- All the links in the footer should remain intact. -->
-        <!-- You can delete the links only if you purchased the pro version. -->
-        <!-- Licensing information: https://bootstrapmade.com/license/ -->
-        <!-- Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/impact-bootstrap-business-website-template/ -->
-         <a href=""></a>
-      </div>
-    </div>
-
-  </footer><!-- End Footer -->
-  <!-- End Footer -->
-
-  <a href="#" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
-
-  <div id="preloader"></div>
-
-  <!-- Vendor JS Files -->
-  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script src="assets/vendor/aos/aos.js"></script>
-  <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
-  <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
-  <script src="assets/vendor/swiper/swiper-bundle.min.js"></script>
-  <script src="assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
-  <script src="assets/vendor/php-email-form/validate.js"></script>
-
-  <!-- Template Main JS File -->
-  <script src="assets/js/main.js"></script>
-
+<script>
+  // Mobile menu
+  document.getElementById('menuBtn').addEventListener('click', function() {
+    document.getElementById('mobileNav').classList.toggle('open');
+  });
+  // Footer year
+  document.getElementById('footer-year').textContent =
+    '© ' + new Date().getFullYear() + ' Least Squares. All rights reserved.';
+</script>
 </body>
-
 </html>

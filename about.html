@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About — Least Squares</title>
+  <meta name="description" content="Least Squares is a visual content brand for ML/AI engineers — architectures, system design and ML design, broken down on whiteboards." />
+  <meta property="og:title" content="About — Least Squares" />
+  <meta property="og:description" content="Visual ML/AI content for engineers and researchers." />
+  <meta property="og:url" content="/about" />
+  <link rel="canonical" href="/about" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="inner">
+    <a href="index.html" class="logo font-display">Least Squares</a>
+    <nav>
+      <a href="architectures.html">Architectures</a>
+      <a href="system-design.html">System Design</a>
+      <a href="ml-design.html">ML Design</a>
+      <a href="about.html" class="active">About</a>
+    </nav>
+    <a href="https://www.youtube.com/" target="_blank" rel="noreferrer" class="subscribe-btn">
+      <span class="subscribe-label">Subscribe</span>
+      <span class="icon-circle">
+        <svg class="icon-arrow-right" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </span>
+    </a>
+    <button class="mobile-menu-btn" id="menuBtn" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="architectures.html">Architectures</a>
+    <a href="system-design.html">System Design</a>
+    <a href="ml-design.html">ML Design</a>
+    <a href="about.html">About</a>
+    <a href="https://www.youtube.com/" target="_blank" rel="noreferrer">Subscribe →</a>
+  </nav>
+</header>
+
+<!-- MAIN -->
+<div class="page-wrapper about-page">
+  <main>
+    <section>
+      <div class="about-inner">
+        <span class="about-badge">About</span>
+        <h1>We draw the diagrams ML/AI papers forget to include.</h1>
+        <div class="about-body">
+          <p>
+            Least Squares is a content studio focused on
+            <span class="highlight">ML/AI architectures</span>,
+            <span class="highlight">system design</span>, and
+            <span class="highlight">ML design</span>. We translate dense papers, blog posts, and production lore into annotated, whiteboard-style visuals that engineers can actually use.
+          </p>
+          <p>
+            We're not a course platform. We're a publication — daily snippets on Instagram and LinkedIn, longer breakdowns on YouTube, and visual essays here.
+          </p>
+          <p>
+            If you build, train, deploy, or just think hard about intelligent systems — you're the reader we're writing for.
+          </p>
+        </div>
+
+        <div class="about-channels">
+          <a href="https://www.linkedin.com/" target="_blank" rel="noreferrer" class="channel-card">
+            <div class="channel-num">01 / LINKEDIN</div>
+            <div class="channel-label">Daily systems</div>
+          </a>
+          <a href="https://www.instagram.com/" target="_blank" rel="noreferrer" class="channel-card">
+            <div class="channel-num">02 / INSTAGRAM</div>
+            <div class="channel-label">Visual snippets</div>
+          </a>
+          <a href="https://www.youtube.com/" target="_blank" rel="noreferrer" class="channel-card">
+            <div class="channel-num">03 / YOUTUBE</div>
+            <div class="channel-label">Deep dives</div>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="inner">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h2 class="font-display">Let's build<br>the future,<br>together.</h2>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-label">Explore</p>
+          <ul>
+            <li><a href="architectures.html">Architectures</a></li>
+            <li><a href="system-design.html">System Design</a></li>
+            <li><a href="ml-design.html">ML Design</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-label">Follow</p>
+          <ul>
+            <li><a href="https://www.youtube.com/" target="_blank" rel="noreferrer">YouTube</a></li>
+            <li><a href="https://www.linkedin.com/" target="_blank" rel="noreferrer">LinkedIn</a></li>
+            <li><a href="https://www.instagram.com/" target="_blank" rel="noreferrer">Instagram</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p id="footer-year">© 2026 Least Squares. All rights reserved.</p>
+        <p>Visual breakdowns of ML &amp; AI systems.</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+  document.getElementById('menuBtn').addEventListener('click', function() {
+    document.getElementById('mobileNav').classList.toggle('open');
+  });
+  document.getElementById('footer-year').textContent =
+    '© ' + new Date().getFullYear() + ' Least Squares. All rights reserved.';
+</script>
+</body>
+</html>

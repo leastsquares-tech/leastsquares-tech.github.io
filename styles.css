@@ -1102,3 +1102,7 @@ ul {
     grid-template-columns: 1fr;
   }
 }
+
+.brand-color {
+  color: #6f60f1;
+}

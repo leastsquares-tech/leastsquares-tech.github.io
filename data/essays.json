@@ -1,0 +1,28 @@
+{
+  "essays": [
+    {
+      "id": "essay-transformers",
+      "slug": "essays/essay-transformers.html",
+      "title": "Why Transformers Scale Better Than We Thought",
+      "lede": "Exploring the quadratic bottleneck and the emergence of linear-time alternatives to the attention mechanism.",
+      "tag": "Architecture",
+      "date": "2026-05-20",
+      "dateLabel": "May 20, 2026",
+      "readTime": "8 min read",
+      "image": "assets/diagram-transformer.jpg",
+      "imageAlt": "Transformer architecture diagram"
+    },
+    {
+      "id": "essay-rag",
+      "slug": "essays/essay-rag.html",
+      "title": "The Hidden Costs of RAG in Production",
+      "lede": "Latency trade-offs between dense retrieval, semantic caching, and long-context models in production RAG systems.",
+      "tag": "Systems",
+      "date": "2026-05-10",
+      "dateLabel": "May 10, 2026",
+      "readTime": "10 min read",
+      "image": "assets/diagram-rag.jpg",
+      "imageAlt": "RAG pipeline diagram"
+    }
+  ]
+}

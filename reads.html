@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visual Reads — Least Squares</title>
+  <meta name="description" content="Visual breakdowns of ML/AI architectures, system design, and production patterns." />
+  <link rel="canonical" href="/reads" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ---- Reads index page ---- */
+    .reads-page .reads-hero {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 4rem 2.5rem 4rem;
+      border-bottom: 1px solid color-mix(in oklch, var(--ink) 10%, transparent);
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 2rem;
+    }
+
+    .reads-page h1 {
+      font-family: var(--font-display);
+      font-size: clamp(3.5rem, 7vw, 6.5rem);
+      font-weight: 600;
+      letter-spacing: -0.04em;
+      line-height: 0.93;
+    }
+
+    .reads-page .reads-hero-right {
+      flex-shrink: 0;
+      text-align: right;
+    }
+
+    .reads-page .reads-count {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.25em;
+      color: color-mix(in oklch, var(--ink) 45%, transparent);
+    }
+
+    /* Filter bar */
+    .reads-page .filter-bar {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1.5rem 2.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      border-bottom: 1px solid color-mix(in oklch, var(--ink) 10%, transparent);
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: none;
+      border: 1px solid color-mix(in oklch, var(--ink) 15%, transparent);
+      border-radius: 9999px;
+      padding: 0.375rem 1rem;
+      font-size: 0.8125rem;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      color: color-mix(in oklch, var(--ink) 60%, transparent);
+      transition: all 0.15s;
+    }
+
+    .filter-btn:hover {
+      border-color: var(--ink);
+      color: var(--ink);
+    }
+
+    .filter-btn.active {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: var(--paper);
+    }
+
+    /* Grid */
+    .reads-page .reads-grid-wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 3rem 2.5rem 2rem;
+    }
+
+    .reads-page .reads-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3rem 2.5rem;
+    }
+
+    .reads-page .reads-card {
+      display: block;
+      text-decoration: none;
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    .reads-page .reads-img-wrap {
+      aspect-ratio: 4/3;
+      overflow: hidden;
+      background: var(--muted-paper);
+      margin-bottom: 1.25rem;
+      border-radius: 2px;
+    }
+
+    .reads-page .reads-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s;
+    }
+
+    .reads-page .reads-card:hover .reads-img-wrap img {
+      transform: scale(1.04);
+    }
+
+    .reads-page .reads-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.625rem;
+    }
+
+    .reads-page .reads-tag {
+      font-size: 0.6875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      font-weight: 600;
+      color: color-mix(in oklch, var(--ink) 50%, transparent);
+    }
+
+    .reads-page .reads-date {
+      font-size: 0.6875rem;
+      color: color-mix(in oklch, var(--ink) 40%, transparent);
+    }
+
+    .reads-page .reads-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.125rem, 1.5vw, 1.375rem);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      margin-bottom: 0.625rem;
+      transition: opacity 0.15s;
+    }
+
+    .reads-page .reads-card:hover .reads-title {
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      text-decoration-thickness: 1px;
+    }
+
+    .reads-page .reads-lede {
+      font-size: 0.9375rem;
+      color: color-mix(in oklch, var(--ink) 55%, transparent);
+      line-height: 1.55;
+    }
+
+    /* Empty state */
+    .reads-page .empty-state {
+      grid-column: 1 / -1;
+      padding: 4rem 0;
+      text-align: center;
+      color: color-mix(in oklch, var(--ink) 40%, transparent);
+      font-size: 1rem;
+    }
+
+    /* Pagination */
+    .reads-page .pagination {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 3rem 2.5rem 5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid color-mix(in oklch, var(--ink) 10%, transparent);
+      margin-top: 2rem;
+    }
+
+    .pagination-info {
+      font-size: 0.875rem;
+      color: color-mix(in oklch, var(--ink) 45%, transparent);
+    }
+
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .page-btn {
+      min-width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 6px;
+      border: 1px solid color-mix(in oklch, var(--ink) 15%, transparent);
+      background: none;
+      font-family: var(--font-sans);
+      font-size: 0.875rem;
+      cursor: pointer;
+      color: color-mix(in oklch, var(--ink) 60%, transparent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 0.5rem;
+      transition: all 0.15s;
+    }
+
+    .page-btn:hover:not(:disabled) {
+      border-color: var(--ink);
+      color: var(--ink);
+    }
+
+    .page-btn.active {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: var(--paper);
+    }
+
+    .page-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .page-btn svg {
+      width: 0.875rem;
+      height: 0.875rem;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    @media (max-width: 900px) {
+      .reads-page .reads-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .reads-page .reads-hero {
+        padding: 2.5rem 1.5rem 2rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+      .reads-page .reads-hero-right { text-align: left; }
+      .reads-page .filter-bar { padding: 1.25rem 1.5rem; }
+      .reads-page .reads-grid-wrap { padding: 2rem 1.5rem 1rem; }
+      .reads-page .reads-grid {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+      }
+      .reads-page .pagination {
+        padding: 2rem 1.5rem 3rem;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="inner">
+    <a href="index.html" class="logo font-display">
+      Least <span class="brand-color">Squares</span>
+    </a>
+    <nav>
+      <a href="architectures.html">Architectures</a>
+      <a href="system-design.html">System Design</a>
+      <a href="ml-design.html">ML Design</a>
+      <a href="about.html">About</a>
+    </nav>
+    <a href="https://www.youtube.com/" target="_blank" rel="noreferrer" class="subscribe-btn">
+      <span class="subscribe-label">Subscribe</span>
+      <span class="icon-circle">
+        <svg class="icon-arrow-right" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </span>
+    </a>
+    <button class="mobile-menu-btn" id="menuBtn" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="architectures.html">Architectures</a>
+    <a href="system-design.html">System Design</a>
+    <a href="ml-design.html">ML Design</a>
+    <a href="about.html">About</a>
+    <a href="https://www.youtube.com/" target="_blank" rel="noreferrer">Subscribe →</a>
+  </nav>
+</header>
+
+<!-- MAIN -->
+<div class="page-wrapper reads-page">
+  <main>
+
+    <section class="reads-hero">
+      <h1 class="editorial-headline">Visual<br>Reads</h1>
+      <div class="reads-hero-right">
+        <p class="reads-count" id="totalCount">— reads</p>
+      </div>
+    </section>
+
+    <!-- Filter bar -->
+    <div class="filter-bar" id="filterBar">
+      <button class="filter-btn active" data-tag="All">All</button>
+      <!-- Tag buttons injected by JS -->
+    </div>
+
+    <!-- Grid -->
+    <div class="reads-grid-wrap">
+      <div class="reads-grid" id="readsGrid">
+        <!-- Cards injected by JS -->
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" id="pagination">
+      <span class="pagination-info" id="pageInfo"></span>
+      <div class="pagination-controls" id="pageControls"></div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="inner">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h2 class="font-display">Let's build<br>the future,<br>together.</h2>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-label">Explore</p>
+          <ul>
+            <li><a href="reads.html">Reads</a></li>
+            <li><a href="architectures.html">Architectures</a></li>
+            <li><a href="system-design.html">System Design</a></li>
+            <li><a href="ml-design.html">ML Design</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-label">Follow</p>
+          <ul>
+            <li><a href="https://www.youtube.com/" target="_blank" rel="noreferrer">YouTube</a></li>
+            <li><a href="https://www.linkedin.com/" target="_blank" rel="noreferrer">LinkedIn</a></li>
+            <li><a href="https://www.instagram.com/" target="_blank" rel="noreferrer">Instagram</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p id="footer-year">© 2026 Least Squares. All rights reserved.</p>
+        <p>Visual breakdowns of ML &amp; AI systems.</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+  const PER_PAGE = 6;
+  let allReads = [];
+  let filtered = [];
+  let currentPage = 1;
+  let activeTag = 'All';
+
+  // ── Reads data — add new posts here ──────────────────────
+  // To add a new reads: copy one object, update the fields, save.
+  const ESSAYS_DATA = [
+    {
+      id: "reads-transformers",
+      slug: "reads/reads-transformers.html",
+      title: "Why Transformers Scale Better Than We Thought",
+      lede: "Exploring the quadratic bottleneck and the emergence of linear-time alternatives to the attention mechanism.",
+      tag: "Architecture",
+      date: "2026-05-20",
+      dateLabel: "May 20, 2026",
+      readTime: "8 min read",
+      image: "assets/diagram-transformer.jpg",
+      imageAlt: "Transformer architecture diagram"
+    },
+    {
+      id: "reads-rag",
+      slug: "reads/reads-rag.html",
+      title: "The Hidden Costs of RAG in Production",
+      lede: "Latency trade-offs between dense retrieval, semantic caching, and long-context models in production RAG systems.",
+      tag: "Systems",
+      date: "2026-05-10",
+      dateLabel: "May 10, 2026",
+      readTime: "10 min read",
+      image: "assets/diagram-rag.jpg",
+      imageAlt: "RAG pipeline diagram"
+    }
+  ];
+
+  allReads = ESSAYS_DATA;
+  init();
+
+  // ── Bootstrap ──────────────────────────────────────────────
+  function init() {
+    buildFilters();
+    applyFilter('All');
+  }
+
+  // ── Build tag filter buttons ───────────────────────────────
+  function buildFilters() {
+    const tags = ['All', ...new Set(allReads.map(e => e.tag))];
+    const bar = document.getElementById('filterBar');
+    bar.innerHTML = '';
+    tags.forEach(tag => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-btn' + (tag === activeTag ? ' active' : '');
+      btn.dataset.tag = tag;
+      btn.textContent = tag;
+      btn.addEventListener('click', () => applyFilter(tag));
+      bar.appendChild(btn);
+    });
+  }
+
+  // ── Filter + paginate ──────────────────────────────────────
+  function applyFilter(tag) {
+    activeTag = tag;
+    currentPage = 1;
+    filtered = tag === 'All' ? [...allReads] : allReads.filter(e => e.tag === tag);
+
+    // Update active button
+    document.querySelectorAll('.filter-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.tag === tag);
+    });
+
+    document.getElementById('totalCount').textContent =
+      filtered.length + ' reads' + (filtered.length !== 1 ? 's' : '');
+
+    render();
+  }
+
+  // ── Render current page ────────────────────────────────────
+  function render() {
+    const grid = document.getElementById('readsGrid');
+    const start = (currentPage - 1) * PER_PAGE;
+    const page = filtered.slice(start, start + PER_PAGE);
+
+    if (page.length === 0) {
+      grid.innerHTML = '<p class="empty-state">No reads in this category yet.</p>';
+    } else {
+      grid.innerHTML = page.map(reads => `
+        <a href="${reads.slug}" class="reads-card">
+          <div class="reads-img-wrap">
+            <img src="${reads.image}" alt="${reads.imageAlt}" loading="lazy" />
+          </div>
+          <div class="reads-meta">
+            <span class="reads-tag">${reads.tag}</span>
+            <span class="reads-date">${reads.dateLabel} · ${reads.readTime}</span>
+          </div>
+          <h2 class="reads-title font-display">${reads.title}</h2>
+          <p class="reads-lede">${reads.lede}</p>
+        </a>
+      `).join('');
+    }
+
+    renderPagination();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── Render pagination controls ─────────────────────────────
+  function renderPagination() {
+    const total = Math.ceil(filtered.length / PER_PAGE);
+    const start = (currentPage - 1) * PER_PAGE + 1;
+    const end = Math.min(currentPage * PER_PAGE, filtered.length);
+
+    document.getElementById('pageInfo').textContent =
+      filtered.length > 0 ? `Showing ${start}–${end} of ${filtered.length}` : '';
+
+    const controls = document.getElementById('pageControls');
+
+    if (total <= 1) {
+      controls.innerHTML = '';
+      return;
+    }
+
+    // Prev button
+    let html = `
+      <button class="page-btn" id="prevBtn" ${currentPage === 1 ? 'disabled' : ''} aria-label="Previous page">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+    `;
+
+    // Page number buttons (show up to 5, with ellipsis)
+    const pages = getPageRange(currentPage, total);
+    pages.forEach(p => {
+      if (p === '…') {
+        html += `<span style="padding:0 0.25rem;color:color-mix(in oklch,var(--ink) 40%,transparent);font-size:.875rem">…</span>`;
+      } else {
+        html += `<button class="page-btn${p === currentPage ? ' active' : ''}" data-page="${p}">${p}</button>`;
+      }
+    });
+
+    // Next button
+    html += `
+      <button class="page-btn" id="nextBtn" ${currentPage === total ? 'disabled' : ''} aria-label="Next page">
+        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    `;
+
+    controls.innerHTML = html;
+
+    controls.querySelector('#prevBtn')?.addEventListener('click', () => goTo(currentPage - 1));
+    controls.querySelector('#nextBtn')?.addEventListener('click', () => goTo(currentPage + 1));
+    controls.querySelectorAll('[data-page]').forEach(btn => {
+      btn.addEventListener('click', () => goTo(Number(btn.dataset.page)));
+    });
+  }
+
+  function goTo(page) {
+    currentPage = page;
+    render();
+  }
+
+  // Smart page range: always show first, last, current ± 1, with ellipsis
+  function getPageRange(current, total) {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const pages = new Set([1, total, current, current - 1, current + 1]
+      .filter(p => p >= 1 && p <= total));
+    const sorted = [...pages].sort((a, b) => a - b);
+    const result = [];
+    sorted.forEach((p, i) => {
+      if (i > 0 && p - sorted[i - 1] > 1) result.push('…');
+      result.push(p);
+    });
+    return result;
+  }
+
+  // ── Header mobile menu ─────────────────────────────────────
+  document.getElementById('menuBtn').addEventListener('click', function () {
+    document.getElementById('mobileNav').classList.toggle('open');
+  });
+
+  document.getElementById('footer-year').textContent =
+    '© ' + new Date().getFullYear() + ' Least Squares. All rights reserved.';
+</script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Hidden Costs of RAG in Production — Least Squares</title>
+  <meta name="description" content="Latency trade-offs between dense retrieval, semantic caching, and long-context models in production RAG systems." />
+  <meta property="og:title" content="The Hidden Costs of RAG in Production" />
+  <meta property="og:description" content="Latency trade-offs between dense retrieval, semantic caching, and long-context models." />
+  <meta property="og:image" content="../assets/diagram-rag.jpg" />
+  <link rel="canonical" href="/reads-rag" />
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="inner">
+    <a href="../index.html" class="logo font-display">
+      Least <span class="brand-color">Squares</span>
+    </a>
+    <nav>
+      <a href="../reads.html">Reads</a>
+      <a href="../architectures.html">Architectures</a>
+      <a href="../system-design.html">System Design</a>
+      <a href="../ml-design.html">ML Design</a>
+      <a href="../about.html">About</a>
+    </nav>
+    <a href="https://www.youtube.com/" target="_blank" rel="noreferrer" class="subscribe-btn">
+      <span class="subscribe-label">Subscribe</span>
+      <span class="icon-circle">
+        <svg class="icon-arrow-right" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </span>
+    </a>
+    <button class="mobile-menu-btn" id="menuBtn" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="../reads.html">Reads</a>
+    <a href="../architectures.html">Architectures</a>
+    <a href="../system-design.html">System Design</a>
+    <a href="../ml-design.html">ML Design</a>
+    <a href="../about.html">About</a>
+    <a href="https://www.youtube.com/" target="_blank" rel="noreferrer">Subscribe →</a>
+  </nav>
+</header>
+
+<!-- MAIN -->
+<div class="page-wrapper reads-page">
+  <main>
+
+    <!-- Hero -->
+    <section class="reads-hero">
+      <a href="../index.html#reads" class="reads-back">
+        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Visual Reads
+      </a>
+      <div class="reads-meta-top">
+        <span class="reads-tag-pill">Systems</span>
+        <span class="reads-date">May 2026 · 10 min read</span>
+      </div>
+      <h1 class="editorial-headline">The Hidden Costs of RAG in Production</h1>
+      <p class="reads-lede">
+        RAG demos run in 200ms. Production RAG runs in 2 seconds — or breaks. Here's the full latency budget, what blows it up, and the three architectural levers that actually matter.
+      </p>
+      <p class="reads-byline">By Least Squares</p>
+    </section>
+
+    <!-- Cover image -->
+    <div class="reads-cover">
+      <img src="../assets/diagram-rag.jpg" alt="RAG pipeline diagram" />
+    </div>
+
+    <!-- Body -->
+    <article class="reads-content">
+
+      <h2>The Demo Gap</h2>
+      <p>
+        Every RAG demo looks the same: one PDF, one question, one retrieved chunk, one answer. Total latency: 300ms. The team ships it and immediately hits a wall.
+      </p>
+      <p>
+        Production RAG has a fundamentally different latency profile. You're not retrieving from one document — you're retrieving from a corpus of millions. You're not running one query — you're running concurrent queries from thousands of users. You're not evaluating one chunk — you're re-ranking twenty. <strong>Each of these adds time that didn't show up in the demo.</strong>
+      </p>
+
+      <div class="reads-callout">
+        <p><strong>Typical production latency breakdown</strong>Embedding the query: 20–60ms · ANN search: 10–80ms · Re-ranking: 100–400ms · LLM generation: 500ms–3s · Total p95: 800ms–4s</p>
+      </div>
+
+      <h2>The Three Bottlenecks That Actually Matter</h2>
+
+      <h3>1. Embedding Latency at Query Time</h3>
+      <p>
+        Most teams optimise embedding throughput for indexing and forget about query-time latency. A large embedding model (e.g. text-embedding-3-large) takes 40–80ms per query on a shared endpoint. At high QPS that adds up fast — and it happens on the critical path, before retrieval even starts.
+      </p>
+      <p>
+        The fix is usually a smaller embedding model for query encoding: something in the 100M parameter range that runs in under 10ms. The quality hit is real but often acceptable, because <strong>retrieval recall matters more than embedding precision at the top-20 stage</strong> — the re-ranker handles precision.
+      </p>
+
+      <figure>
+        <img src="../assets/diagram-rag.jpg" alt="RAG pipeline showing query embedding, ANN retrieval, re-ranking and generation stages with latency annotations" />
+        <figcaption>A production RAG pipeline. The re-ranking stage is the most commonly underestimated bottleneck — it runs a cross-encoder over every retrieved candidate on the critical path.</figcaption>
+      </figure>
+
+      <h3>2. Re-ranking is a Cross-Encoder on the Hot Path</h3>
+      <p>
+        Bi-encoder retrieval (embedding query, embedding docs, dot product) is fast because you precompute doc embeddings. But bi-encoders have a ceiling — they can't model query-document interaction, so precision drops.
+      </p>
+      <p>
+        Cross-encoders (re-rankers) model that interaction explicitly and are dramatically more accurate — but they run at query time, processing each candidate pair through a full encoder forward pass. With 20 candidates and a 110M parameter re-ranker, that's <strong>~300ms of serial compute</strong> you've just added to every request.
+      </p>
+
+      <blockquote>
+        <p>The re-ranker is the best quality improvement you can make to a RAG system. It's also the easiest way to blow your latency budget.</p>
+      </blockquote>
+
+      <h3>3. Semantic Caching vs Long-Context Models</h3>
+      <p>
+        As context windows have grown to 128k and beyond, a new question has emerged: <strong>should you RAG at all, or just stuff the whole corpus into context?</strong> The answer is almost always "RAG" — but the reasoning is more subtle than "context windows are too expensive."
+      </p>
+      <p>
+        The real issue is attention patterns. Transformers are not equally good at using all positions in a long context. There's a well-documented "lost in the middle" effect where documents placed in the middle of a long context are systematically underweighted relative to documents at the start and end. RAG sidesteps this by surfacing only the most relevant chunks, putting them in the high-attention positions.
+      </p>
+
+      <div class="reads-callout">
+        <p><strong>When to use long-context instead of RAG</strong>Small corpora that fit comfortably (&lt;50k tokens) · Tasks requiring cross-document synthesis · Latency-insensitive offline pipelines where quality trumps speed.</p>
+      </div>
+
+      <hr />
+
+      <h2>The Architecture That Survives Production</h2>
+      <p>
+        The pattern that works at scale is a two-stage pipeline with a semantic cache in front. The cache stores (query embedding → response) pairs with approximate nearest-neighbour lookup. Cache hits bypass retrieval and generation entirely — latency drops to under 20ms.
+      </p>
+      <p>
+        Cache misses fall through to retrieval. Use a fast bi-encoder for ANN search, retrieve 50–100 candidates, run a small cross-encoder re-ranker on the top 20, pass the top 5 to generation. Monitor retrieval recall independently from generation quality — they fail in different ways and need different fixes.
+      </p>
+      <p>
+        The last piece is <strong>async evaluation</strong>. Log every query, retrieved context, and generated answer. Run your groundedness and faithfulness evaluators offline. Feed failures back into your chunking strategy and retrieval configuration. RAG quality is not a launch metric — it's a continuous improvement loop.
+      </p>
+
+    </article>
+
+    <!-- Post nav -->
+    <nav class="reads-post-nav" aria-label="Post navigation">
+      <a href="reads-transformers.html" class="post-nav-link prev">
+        <span class="post-nav-label">Previous read</span>
+        <span class="post-nav-title">Why Transformers Scale Better Than We Thought</span>
+      </a>
+    </nav>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="inner">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h2 class="font-display">Let's build<br>the future,<br>together.</h2>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-label">Explore</p>
+          <ul>
+            <li><a href="../reads.html">Reads</a></li>
+            <li><a href="../architectures.html">Architectures</a></li>
+            <li><a href="../system-design.html">System Design</a></li>
+            <li><a href="../ml-design.html">ML Design</a></li>
+            <li><a href="../about.html">About</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-label">Follow</p>
+          <ul>
+            <li><a href="https://www.youtube.com/" target="_blank" rel="noreferrer">YouTube</a></li>
+            <li><a href="https://www.linkedin.com/" target="_blank" rel="noreferrer">LinkedIn</a></li>
+            <li><a href="https://www.instagram.com/" target="_blank" rel="noreferrer">Instagram</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p id="footer-year">© 2026 Least Squares. All rights reserved.</p>
+        <p>Visual breakdowns of ML &amp; AI systems.</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+  document.getElementById('menuBtn').addEventListener('click', function() {
+    document.getElementById('mobileNav').classList.toggle('open');
+  });
+  document.getElementById('footer-year').textContent =
+    '© ' + new Date().getFullYear() + ' Least Squares. All rights reserved.';
+</script>
+</body>
+</html>

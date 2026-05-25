@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Why Transformers Scale Better Than We Thought — Least Squares</title>
+  <meta name="description" content="Exploring the quadratic bottleneck and the emergence of linear-time alternatives." />
+  <meta property="og:title" content="Why Transformers Scale Better Than We Thought" />
+  <meta property="og:description" content="Exploring the quadratic bottleneck and the emergence of linear-time alternatives." />
+  <meta property="og:image" content="assets/diagram-transformer.jpg" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="inner">
+    <a href="index.html" class="logo font-display">Least Squares</a>
+    <nav>
+      <a href="architectures.html">Architectures</a>
+      <a href="system-design.html">System Design</a>
+      <a href="ml-design.html">ML Design</a>
+      <a href="about.html">About</a>
+    </nav>
+    <a href="https://www.youtube.com/" target="_blank" rel="noreferrer" class="subscribe-btn">
+      <span class="subscribe-label">Subscribe</span>
+      <span class="icon-circle">
+        <svg class="icon-arrow-right" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </span>
+    </a>
+    <button class="mobile-menu-btn" id="menuBtn" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="architectures.html">Architectures</a>
+    <a href="system-design.html">System Design</a>
+    <a href="ml-design.html">ML Design</a>
+    <a href="about.html">About</a>
+    <a href="https://www.youtube.com/" target="_blank" rel="noreferrer">Subscribe →</a>
+  </nav>
+</header>
+
+<!-- MAIN -->
+<div class="page-wrapper blog-page">
+  <main>
+
+    <!-- Hero -->
+    <section class="blog-hero">
+      <a href="index.html" class="blog-back">
+        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Back to home
+      </a>
+
+      <div class="blog-meta-row">
+        <span class="blog-tag">Architecture</span>
+        <span class="blog-meta-sep">·</span>
+        <span class="blog-date">May 2026</span>
+        <span class="blog-meta-sep">·</span>
+        <span class="blog-read-time">8 min read</span>
+      </div>
+
+      <h1 class="editorial-headline">Why Transformers Scale Better Than We Thought</h1>
+      <p class="blog-subtitle">The quadratic attention bottleneck was supposed to be a dealbreaker at scale. It wasn't — and understanding why reveals something deep about how information flows through these models.</p>
+
+      <div class="blog-cover">
+        <img src="assets/diagram-transformer.jpg" alt="Transformer architecture diagram" />
+      </div>
+    </section>
+
+    <!-- Body -->
+    <div class="blog-body-wrap">
+      <article class="blog-article">
+
+        <p>When the original "Attention Is All You Need" paper dropped in 2017, critics were quick to point out a fundamental flaw: self-attention is <strong>O(n²)</strong> in sequence length. Double the tokens, quadruple the compute. At the scales we're running today — hundred-thousand token context windows — that should have been a death sentence.</p>
+
+        <p>It wasn't. And unpacking why tells us a lot about what transformers are actually doing under the hood.</p>
+
+        <h2>The Quadratic Problem, Precisely</h2>
+
+        <p>In standard multi-head attention, every token attends to every other token. For a sequence of length <em>n</em>, that's n² attention scores computed per layer, per head. Memory scales the same way — you need to materialise the full n×n attention matrix.</p>
+
+        <figure class="blog-diagram">
+          <img src="assets/diagram-transformer.jpg" alt="Attention matrix showing quadratic scaling" />
+          <figcaption>Fig 1. — The attention matrix for a sequence of length n. Each cell is one dot-product between a query and a key vector.</figcaption>
+        </figure>
+
+        <p>In practice, for sequences beyond 8–16k tokens on typical hardware, the attention matrix alone exceeds GPU SRAM capacity. You spill to HBM, bandwidth becomes the bottleneck, and throughput craters.</p>
+
+        <div class="blog-callout">
+          <strong>Key insight:</strong> The quadratic cost is real — but it's a <em>memory bandwidth</em> problem more than a raw FLOP problem. FlashAttention (2022) exploited this distinction to deliver near-linear wall-clock scaling by tiling the computation to stay in SRAM.
+        </div>
+
+        <h2>Why Models Scaled Anyway</h2>
+
+        <p>Three forces conspired to make transformers viable at scale despite the theoretical ceiling:</p>
+
+        <h3>1. Hardware outran the theory</h3>
+        <p>GPU memory bandwidth has roughly doubled every two years. A4100 → A100 → H100 → B200: each generation moved the practical breakeven point for long-context attention further out. The quadratic wall recedes as hardware improves.</p>
+
+        <h3>2. Sparse attention patterns are sufficient</h3>
+        <p>Empirically, most of the information in the attention matrix lives on the diagonal and in a small set of globally-attended "sink" tokens. Sparse attention variants — local windows, strided patterns, learned routing — achieve near-identical downstream quality at a fraction of the cost.</p>
+
+        <h3>3. The FFN is the real workhorse</h3>
+        <p>A transformer block is roughly 1/3 attention and 2/3 feed-forward network by parameter count. The FFN stores factual associations and is where most of the model's "knowledge" lives. Attention is closer to a routing mechanism — deciding <em>which</em> information to retrieve — than the seat of intelligence itself. That routing doesn't need to be exhaustive.</p>
+
+        <hr class="blog-divider" />
+
+        <h2>The Linear-Time Frontier</h2>
+
+        <p>This understanding has spawned a generation of linear-complexity alternatives: <strong>Mamba</strong> (selective state spaces), <strong>RWKV</strong> (recurrence with attention-like expressiveness), and <strong>Hyena</strong> (long convolutions). Each trades the full attention matrix for a recurrence or convolution that runs in O(n) time.</p>
+
+        <p>The open question isn't whether they're faster — they are — but whether they preserve the in-context learning and associative recall properties that make transformers so useful. Early evidence suggests they do for most tasks, with some degradation on tasks requiring precise needle-in-a-haystack retrieval.</p>
+
+        <blockquote>
+          "The attention mechanism is a quadratic operation serving a linear purpose. The question is whether we can skip the quadratic step." — Gu &amp; Dao, 2023
+        </blockquote>
+
+        <h2>What This Means for System Design</h2>
+
+        <p>If you're building systems today, the practical takeaways are:</p>
+
+        <ul>
+          <li><strong>Use FlashAttention.</strong> It's the default in every major framework now. There's no reason not to.</li>
+          <li><strong>Context length is a product decision first.</strong> Don't architect for 128k tokens because you can — architect for it because your use case needs it. Longer context = more memory = higher latency = higher cost.</li>
+          <li><strong>Watch the SSM space.</strong> Mamba-2 and its successors may render the quadratic discussion moot within two years. Don't over-invest in attention-specific optimisations if your inference horizon is 3+ years out.</li>
+        </ul>
+
+        <p>Transformers scaled because the industry found ways to work around their theoretical limits. That's a pattern worth remembering the next time a fundamental architectural critique surfaces about whatever comes next.</p>
+
+      </article>
+    </div>
+
+    <!-- Related Essays -->
+    <section class="blog-related">
+      <h2 class="editorial-headline">Keep reading</h2>
+      <div class="essays-grid">
+        <article class="essay-card">
+          <a href="blog-rag.html">
+            <div class="essay-img-wrap">
+              <img src="assets/diagram-rag.jpg" alt="The hidden costs of RAG in production" loading="lazy" />
+            </div>
+            <p class="essay-tag">Systems</p>
+            <h3 class="essay-title font-display">The hidden costs of RAG in production</h3>
+            <p class="essay-body">Latency trade-offs between dense retrieval, semantic caching, and long-context models.</p>
+          </a>
+        </article>
+        <article class="essay-card">
+          <a href="architectures.html">
+            <div class="essay-img-wrap" style="background: var(--muted-paper); display:flex; align-items:center; justify-content:center;">
+              <span style="font-family:var(--font-display);font-size:1rem;color:color-mix(in oklch, var(--ink) 30%, transparent);">Architectures →</span>
+            </div>
+            <p class="essay-tag">Pillar</p>
+            <h3 class="essay-title font-display">Explore all architecture breakdowns</h3>
+            <p class="essay-body">MoE routing, diffusion stacks, state spaces and more — all diagrammed from first principles.</p>
+          </a>
+        </article>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="inner">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h2 class="font-display">Let's build<br>the future,<br>together.</h2>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-label">Explore</p>
+          <ul>
+            <li><a href="architectures.html">Architectures</a></li>
+            <li><a href="system-design.html">System Design</a></li>
+            <li><a href="ml-design.html">ML Design</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-label">Follow</p>
+          <ul>
+            <li><a href="https://www.youtube.com/" target="_blank" rel="noreferrer">YouTube</a></li>
+            <li><a href="https://www.linkedin.com/" target="_blank" rel="noreferrer">LinkedIn</a></li>
+            <li><a href="https://www.instagram.com/" target="_blank" rel="noreferrer">Instagram</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p id="footer-year">© 2026 Least Squares. All rights reserved.</p>
+        <p>Visual breakdowns of ML &amp; AI systems.</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+  document.getElementById('menuBtn').addEventListener('click', function() {
+    document.getElementById('mobileNav').classList.toggle('open');
+  });
+  document.getElementById('footer-year').textContent =
+    '© ' + new Date().getFullYear() + ' Least Squares. All rights reserved.';
+</script>
+</body>
+</html>

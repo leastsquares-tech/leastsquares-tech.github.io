@@ -52,6 +52,22 @@ ul {
   line-height: 0.95;
 }
 
+.editorial-headline-gradient {
+  font-weight: 700;
+  background: linear-gradient(90deg, #111 0%, #111 40%, #6f60f1 50%, #111 60%, #111 100%);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer 2.5s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% center; }
+  100% { background-position: 0% center; }
+}
+
+
 /* --- HEADER --- */
 .site-header {
   width: 100%;

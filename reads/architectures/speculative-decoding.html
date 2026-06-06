@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Speculative Decoding in LLMs, Least Squares</title>
+  <meta name="description" content="Exploring the quadratic bottleneck and the emergence of linear-time alternatives to the attention mechanism." />
+  <meta property="og:title" content="Why Transformers Scale Better Than We Thought" />
+  <meta property="og:description" content="Exploring the quadratic bottleneck and the emergence of linear-time alternatives." />
+  <meta property="og:image" content="../../assets/diagram-transformer.jpg" />
+  <link rel="canonical" href="/speculative-decoding" />
+  <link rel="stylesheet" href="../../styles.css" />
+</head>
+<body>
+
+
+<style>
+  code {
+    font-family: 'Inter';
+    font-size: 0.82em;
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    color: #7F77DD;
+  }
+
+  .callout {
+    border-left: 3px solid #378ADD;
+    background: var(--surface2);
+    border-radius: 0 8px 8px 0;
+    padding: 1rem 1.25rem;
+    margin: 1.75rem 0;
+    font-style: italic;
+    font-size: 0.97rem;
+    color: var(--ink2);
+  }
+  .callout strong { font-style: normal; color: #185FA5; }
+
+  .callout-warn {
+    border-left: 3px solid #BA7517;
+    background: var(--surface2);
+    border-radius: 0 8px 8px 0;
+    padding: 1rem 1.25rem;
+    margin: 1.75rem 0;
+    font-style: italic;
+    font-size: 0.97rem;
+    color: var(--ink2);
+  }
+  .callout-warn strong { font-style: normal; color: #854F0B; }
+
+  .equation {
+    font-family: 'Inter';
+    font-size: 0.9rem;
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0;
+    color: var(--ink);
+    line-height: 1.9;
+    overflow-x: auto;
+    text-align: center;
+  }
+  .equation.comment { color: var(--ink3); font-style: italic; }
+
+  /* .equation {
+  text-align: center;
+  background: var(--surface2);
+  font-family: 'Inter';
+  font-size: 0.9rem;
+  background: var(--surface2);
+  border: 0.5px solid var(--border2);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin: 1.25rem 0;
+  color: var(--ink);
+  line-height: 1.9;
+  overflow-x: auto;
+} */
+
+.equation-note {
+  margin: 1rem 0;
+  color: #64748b;
+  font-size: 0.95rem;
+  font-style: italic;
+}
+
+  .diagram-wrap {
+    margin: 2rem 0;
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: 12px;
+    padding: 1.25rem 1rem 0.75rem;
+  }
+  .diagram-caption {
+    font-family: 'Inter';
+    font-size: 11px;
+    color: var(--ink3);
+    text-align: center;
+    margin-top: 0.6rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .interactive-demo {
+    margin: 3rem 0;
+    border: 0.5px solid var(--border2);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .demo-header {
+    padding: 0.75rem 1.25rem;
+    border-bottom: 0.5px solid var(--border);
+    font-family: 'Inter';
+    font-size: 12px;
+    color: var(--ink3);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .demo-body { padding: 1.25rem; }
+
+  .token-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 1rem;
+    min-height: 40px;
+    align-items: center;
+  }
+
+  .tok {
+    font-family: 'Inter';
+    font-size: 13px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 0.5px solid var(--border2);
+    background: var(--surface);
+    color: var(--ink);
+    transition: all 0.3s ease;
+    position: relative;
+  }
+  .tok.context { background: var(--surface2); color: var(--ink2); }
+  .tok.draft { background: #EEEDFE; color: #3C3489; border-color: #AFA9EC; }
+  .tok.accepted { background: #E1F5EE; color: #085041; border-color: #5DCAA5; }
+  .tok.rejected { background: #FAECE7; color: #712B13; border-color: #F0997B; text-decoration: line-through; opacity: 0.6; }
+  .tok.bonus { background: #E1F5EE; color: #085041; border-color: #5DCAA5; outline: 2px solid #1D9E75; outline-offset: 2px; }
+  .tok.target-only { background: #E6F1FB; color: #0C447C; border-color: #85B7EB; }
+
+  @media (prefers-color-scheme: dark) {
+    .tok.draft { background: #26215C; color: #CECBF6; border-color: #534AB7; }
+    .tok.accepted { background: #04342C; color: #9FE1CB; border-color: #0F6E56; }
+    .tok.rejected { background: #4A1B0C; color: #F5C4B3; border-color: #993C1D; }
+    .tok.bonus { background: #04342C; color: #9FE1CB; border-color: #0F6E56; outline-color: #1D9E75; }
+    .tok.target-only { background: #042C53; color: #B5D4F4; border-color: #185FA5; }
+  }
+
+  .phase-label {
+    font-family: 'Inter';
+    font-size: 11px;
+    color: var(--ink3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+
+  .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .controls label { font-family: 'Inter'; font-size: 12px; color: var(--ink2); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 1rem; padding-top: 0.75rem; border-top: 0.5px solid var(--border); }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-family: 'Inter'; font-size: 11px; color: var(--ink2); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+  .stat-row { display: flex; gap: 1rem; margin: 1.5rem 0; flex-wrap: wrap; }
+  .stat-card { flex: 1; min-width: 120px; background: var(--surface2); border-radius: 8px; padding: 0.875rem 1rem; border: 0.5px solid var(--border); }
+  .stat-card .num { font-family: 'Inter'; font-size: 1.1rem; font-weight: 500; color: #7F77DD; }
+  .stat-card .lbl { font-family: var(--font-sans); font-size: 12px; color: var(--ink3); margin-top: 2px; }
+
+  .section-divider { border: none; border-top: 0.5px solid var(--border); margin: 2.5rem 0; }
+  .footnote { font-family: var(--font-sans); font-size: 13px; color: var(--ink3); border-top: 0.5px solid var(--border); padding-top: 1.5rem; margin-top: 2.5rem; line-height: 1.6; }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 1.8rem; }
+    .stat-row { flex-direction: column; }
+  }
+  :root {
+  --t: #64748b;
+}
+
+  .c-purple rect {
+  fill: #F3F1FF;
+  stroke: #7F77DD;
+  }
+
+  .c-purple text {
+    fill: #7F77DD;
+  }
+
+  .c-blue rect {
+    fill: #EEF6FF;
+    stroke: #378ADD;
+  }
+
+  .c-blue text {
+    fill: #378ADD;
+  }
+
+  .c-teal rect {
+    fill: #ECFDF5;
+    stroke: #10B981;
+  }
+
+  .c-teal text {
+    fill: #10B981;
+  }
+
+  .c-coral rect {
+    fill: #FFF1ED;
+    stroke: #D85A30;
+  }
+
+  .c-coral text {
+    fill: #D85A30;
+  }
+
+  .c-gray rect {
+    fill: #F8FAFC;
+    stroke: #64748B;
+  }
+
+  .c-gray text {
+    fill: #475569;
+  }
+</style>
+
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="inner">
+    <a href="../../index.html" class="logo font-display">
+      Least <span class="brand-color">Squares</span>
+    </a>
+    <nav>
+      <a href="../../reads.html">Reads</a>
+      <a href="../../architectures.html">Architectures</a>
+      <a href="../../system-design.html">System Design</a>
+      <a href="../../ml-design.html">ML Design</a>
+      <a href="../../about.html">About</a>
+    </nav>
+    <!-- <a href="https://www.youtube.com/" target="_blank" rel="noreferrer" class="subscribe-btn">
+      <span class="subscribe-label">Subscribe</span>
+      <span class="icon-circle">
+        <svg class="icon-arrow-right" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </span>
+    </a> -->
+    <button class="mobile-menu-btn" id="menuBtn" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="../../reads.html">Reads</a>
+    <a href="../../architectures.html">Architectures</a>
+    <a href="../../system-design.html">System Design</a>
+    <a href="../../ml-design.html">ML Design</a>
+    <a href="../../about.html">About</a>
+    <!-- <a href="https://www.youtube.com/" target="_blank" rel="noreferrer">Subscribe →</a> -->
+  </nav>
+</header>
+
+<!-- MAIN -->
+<div class="page-wrapper reads-page">
+  <main>
+
+    <!-- Hero -->
+    <section class="reads-hero">
+      <a href="../../index.html#reads" class="reads-back">
+        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Visual Reads
+      </a>
+      <div class="reads-meta-top">
+        <span class="reads-tag-pill">Architecture</span>
+        <span class="reads-date">June 2026 · 10 min read</span>
+      </div>
+      <h1 class="editorial-headline">Speculative Decoding in LLMs</h1>
+      <p class="reads-lede">
+        How a cheap draft model and a fast verification pass can deliver full-quality output at a fraction of the latency.
+      </p>
+      <p class="reads-byline">By Rajagopal S</p>
+    </section>
+
+    <!-- Cover image -->
+    <div class="reads-cover">
+      <img src="../../assets/speculative-decoding-thumbnail.png" alt="Transformer architecture diagram" />
+    </div>
+
+    <!-- Body -->
+    <article class="reads-content">
+
+      <p>
+        Language models generate text one token at a time. That sequential constraint is not an accident, it exists because each token depends on all the ones before it. But it comes with a serious cost! you cannot parallelise across the sequence. Every forward pass through a 70b-parameter model produces exactly one token, and you pay the full compute cost each time.
+        <strong>Speculative decoding</strong> is a technique that breaks this bottleneck without compromising output quality. The core idea is elegant, use a <strong>small fast model to guess several tokens ahead</strong>, then verify those guesses in a single batched pass through the large model. When the guesses are right, and they often are you get multiple tokens for the price of one verification step.
+        The result is identical output to standard autoregressive decoding, just faster. Not an approximation. Not a trade-off. A genuine free lunch, at least when the stars align.
+      </p>
+
+      <h2>1. The Bottleneck: Why Decoding Is Slow</h2>
+      <p>
+        To understand why speculative decoding works, you first need to understand what makes inference slow in the first place. Modern LLM inference is memory-bandwidth bound, not compute bound. This is a subtle but important distinction. A GPU has far more raw floating-point throughput than it can use when running a single forward pass, most of the silicon sits idle, waiting for weights to be loaded from HBM memory. 
+        The bottleneck is not the arithmetic; it is the time it takes to stream 70 billion parameters from memory into the compute units. This means that whether you run the model on a batch of 1 token or a batch of 8 tokens, the memory-loading cost is roughly the same. You are paying for the weight reads either way. Batching across the sequence dimension is essentially free, up to a point. 
+        Speculative decoding exploits exactly this asymmetry.
+      </p>
+      
+      <div class="reads-callout">
+        <p><strong>Key insight</strong>Running the large model on a batch of 8 candidate tokens costs about the same wall-clock time as running it on 1. If you can generate those 8 candidates cheaply, you have effectively multiplied throughput by up to 8×.</p>
+      </div>
+
+      <h2>2. The Mechanism: Draft, Then Verify</h2>
+      <p>
+        Speculative decoding introduces two models:
+        <br>
+        <br>
+        <strong>The draft model</strong> (also called the proposer or small model) is fast and cheap, typically 7 to 100× smaller than the target. It autoregressively generates a short sequence of K candidate tokens called a draft.
+        <br>
+        <strong>The target model</strong> (the large model you actually care about) then receives the entire draft sequence at once and scores every position in a single forward pass. It produces a probability distribution for each position. The algorithm then decides, token by token, whether to accept or reject each draft token, and the decision is made in a statistically rigorous way that guarantees the final output distribution exactly matches what the target would have produced on its own.
+        <br>
+        <br>
+        The interactive demo below animates a full cycle:
+      </p>
+
+      <div class="interactive-demo">
+        <div class="demo-header"><i class="ti ti-player-play" aria-hidden="true"></i> Speculative decoding, step through a cycle</div>
+        <div class="demo-body">
+          <div id="phase-label" class="phase-label">Press "Next step" to begin</div>
+          <div id="token-display" class="token-row">
+            <span class="tok context">The</span>
+            <span class="tok context">cat</span>
+            <span class="tok context">sat</span>
+            <span class="tok context">on</span>
+            <span class="tok context">the</span>
+          </div>
+          <div id="phase-desc" style="font-size:14px; color: var(--ink2); font-family: var(--font-sans); min-height: 44px; margin-bottom: 1rem; line-height: 1.6;"></div>
+          <div class="controls">
+            <button id="next-btn" onclick="nextStep()">Next step ↗</button>
+            <button onclick="resetDemo()">Reset</button>
+            <span style="font-family: 'Inter'; font-size: 12px; color: var(--ink3);" id="step-counter">Step 0 / 5</span>
+          </div>
+          <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#EEEDFE; border: 0.5px solid #AFA9EC;"></div>draft token</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#E1F5EE; border: 0.5px solid #5DCAA5;"></div>accepted</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#FAECE7; border: 0.5px solid #F0997B;"></div>rejected</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#E6F1FB; border: 0.5px solid #85B7EB; outline: 2px solid #1D9E75; outline-offset: 1px;"></div>bonus (target)</div>
+          </div>
+        </div>
+      </div>
+
+      <p>
+        A few things are worth noting about what just happened. The draft model generated four tokens greedily in sequence, each one conditioned on the previous. The target model then scored all four in one shot. Tokens that matched the target's distribution were accepted; the first mismatch was rejected and replaced with a token sampled from the target's corrected distribution. Crucially, one "bonus" token is always produced: after the last accepted draft token, the target model has already computed a distribution for the next position, so it samples one additional token for free.
+      </p>
+
+      <h2>3. The Acceptance Criterion: Staying Lossless</h2>
+      <p>The magic, and the subtlety, of speculative decoding is in the acceptance rule. A naive approach would just accept a draft token if it looks plausible. But that would silently change the output distribution, which is unacceptable for production systems.</p>
+
+      <p>The correct algorithm uses a rejection sampling scheme introduced by Leviathan et al. (2023). Let <code>q(x)</code> be the draft model's probability for token <code>x</code>, and <code>p(x)</code> be the target model's probability. The acceptance rule is:</p>
+      
+      <div class="equation">
+        $$\text{Accept token } x \text{ with probability: }
+        \min\left(1,\frac{p(x)}{q(x)}\right)$$
+      
+        $$\text{If rejected, sample a replacement from: }
+        \operatorname{norm}\!\left(\max\left(0,\; p(x)-q(x)\right)\right)$$
+      </div>
+      
+      <p>This is a form of rejection sampling. When the target model agrees with the draft, or is even more confident, the token is accepted with probability 1. When the target is less confident than the draft, the token is accepted with probability <code>p/q &lt; 1</code>, and rejections steer the output back toward the target's distribution. The key theorem is that the marginal distribution of the output sequence is identical to the target model's distribution, regardless of how good or bad the draft is.</p>
+
+      <blockquote>
+        <p>Lossless guarantee: Speculative decoding produces exactly the same distribution as standard autoregressive decoding from the target model. It is not an approximation. The draft model only affects speed, never quality.</p>
+      </blockquote>
+
+      <h2>4. The Speedup: When Does It Actually Help?</h2>
+
+      <p>The expected speedup depends on a single key quantity: the <em>acceptance rate</em> <code>α</code>, the average fraction of draft tokens accepted per cycle. If you generate <code>K</code> draft tokens and the acceptance rate is <code>α</code>, the expected number of tokens produced per cycle is:</p>
+
+
+      <div class="equation">
+        $$E[\text{tokens per cycle}]
+        = K\alpha + 1 + (K-1)\alpha(1-\alpha) + \cdots$$
+      
+        <div class="equation-note">
+          As the acceptance rate remains stable, the expression approaches:
+        </div>
+      
+        $$E[\text{tokens per cycle}]
+        \approx
+        \frac{1-\alpha^{K+1}}{1-\alpha}$$
+      
+        <div class="equation-note">
+          Example calculations:
+        </div>
+      
+        $$\alpha = 0.8,\; K = 4
+        \;\Rightarrow\;
+        E \approx 3.4$$
+      
+        $$\alpha = 0.5,\; K = 4
+        \;\Rightarrow\;
+        E \approx 1.9$$
+      </div>
+        
+        <p>The speedup is bounded by the draft overhead and the target model's batch tolerance. In practice, empirical speedups range from 2× to 3.5× on typical text generation tasks with well-matched draft models.</p>
+        
+        <div class="stat-row">
+          <div class="stat-card"><div class="num">2–3.5×</div><div class="lbl">Typical wall-clock speedup</div></div>
+          <div class="stat-card"><div class="num">K = 4–8</div><div class="lbl">Common draft length</div></div>
+          <div class="stat-card"><div class="num">~80%</div><div class="lbl">Acceptance rate on easy text</div></div>
+          <div class="stat-card"><div class="num">0×</div><div class="lbl">Quality degradation</div></div>
+        </div>      
+
+        <p>The acceptance rate is the fulcrum. It is high when the draft model is closely aligned with the target, same vocabulary, similar training data, ideally distilled from the target itself. It degrades on tasks the draft model handles poorly relative to the target: complex reasoning, rare languages, highly structured formats. In those regimes speculative decoding may offer little benefit, and the draft overhead can even hurt throughput.</p>
+
+        <!-- <hr class="section-divider"> -->
+        
+        <h2>5. The Verification Pass: A Diagram</h2>
+        
+        <p>Below is an annotated diagram of what happens inside a single speculative decoding cycle, draft generation on the left, verification and acceptance on the right.</p>
+        
+        <div class="diagram-wrap">
+        <svg width="100%" viewBox="0 0 680 430" role="img">
+          <title>Speculative decoding cycle diagram showing draft model generating tokens, target model verifying in parallel, and accept/reject decisions.</title>
+          <desc>Left side: small draft model generates K tokens autoregressively. Right side: target model scores all K tokens in one batched forward pass. Accept/reject rule applied token by token.</desc>
+          <defs>
+            <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </marker>
+          </defs>
+        
+          <text class="th" x="150" y="28" text-anchor="middle" dominant-baseline="central">Phase 1, draft</text>
+          <text class="th" x="510" y="28" text-anchor="middle" dominant-baseline="central">Phase 2, verify</text>
+          <line x1="330" y1="15" x2="330" y2="415" stroke="var(--t)" stroke-width="0.5" stroke-dasharray="4 3" opacity="0.4"/>
+        
+          <g class="c-purple">
+            <rect x="60" y="50" width="180" height="44" rx="8" stroke-width="0.5"/>
+            <text class="th" x="150" y="72" text-anchor="middle" dominant-baseline="central">Draft model (small)</text>
+          </g>
+        
+          <line x1="150" y1="94" x2="150" y2="118" stroke="#7F77DD" stroke-width="1" marker-end="url(#arr2)"/>
+        
+          <g class="c-purple">
+            <rect x="80" y="118" width="60" height="36" rx="6" stroke-width="0.5"/>
+            <text class="th" x="110" y="136" text-anchor="middle" dominant-baseline="central">t₁</text>
+          </g>
+          <line x1="140" y1="136" x2="158" y2="136" stroke="#7F77DD" stroke-width="1" marker-end="url(#arr2)"/>
+          <g class="c-purple">
+            <rect x="158" y="118" width="60" height="36" rx="6" stroke-width="0.5"/>
+            <text class="th" x="188" y="136" text-anchor="middle" dominant-baseline="central">t₂</text>
+          </g>
+          <text x="150" y="168" text-anchor="middle">autoregressive (sequential)</text>
+        
+          <line x1="150" y1="175" x2="150" y2="198" stroke="#7F77DD" stroke-width="1" marker-end="url(#arr2)"/>
+        
+          <g class="c-purple">
+            <rect x="80" y="198" width="60" height="36" rx="6" stroke-width="0.5"/>
+            <text class="th" x="110" y="216" text-anchor="middle" dominant-baseline="central">t₃</text>
+          </g>
+          <line x1="140" y1="216" x2="158" y2="216" stroke="#7F77DD" stroke-width="1" marker-end="url(#arr2)"/>
+          <g class="c-purple">
+            <rect x="158" y="198" width="60" height="36" rx="6" stroke-width="0.5"/>
+            <text class="th" x="188" y="216" text-anchor="middle" dominant-baseline="central">t₄</text>
+          </g>
+          <text class="ts" x="150" y="248" text-anchor="middle">K = 4 draft tokens</text>
+        
+          <path d="M218 180 L260 180 L260 260 L350 260" fill="none" stroke="var(--t)" stroke-width="1" stroke-dasharray="5 3" marker-end="url(#arr2)" opacity="0.5"/>
+          <text class="ts" x="275" y="202" text-anchor="middle">draft sent</text>
+          <text class="ts" x="275" y="214" text-anchor="middle">to target</text>
+        
+          <g class="c-blue">
+            <rect x="380" y="50" width="260" height="44" rx="8" stroke-width="0.5"/>
+            <text class="th" x="510" y="72" text-anchor="middle" dominant-baseline="central">Target model (large)</text>
+          </g>
+          <text class="ts" x="510" y="112" text-anchor="middle">single batched forward pass</text>
+          <text class="ts" x="510" y="126" text-anchor="middle">scores all K positions at once</text>
+        
+          <line x1="510" y1="132" x2="510" y2="152" stroke="#378ADD" stroke-width="1" marker-end="url(#arr2)"/>
+        
+          <g class="c-teal">
+            <rect x="390" y="152" width="90" height="44" rx="6" stroke-width="0.5"/>
+            <text class="th" x="435" y="168" text-anchor="middle" dominant-baseline="central">t₁ ✓</text>
+            <text class="ts" x="435" y="184" text-anchor="middle" dominant-baseline="central">accept</text>
+          </g>
+          <g class="c-teal">
+            <rect x="492" y="152" width="90" height="44" rx="6" stroke-width="0.5"/>
+            <text class="th" x="537" y="168" text-anchor="middle" dominant-baseline="central">t₂ ✓</text>
+            <text class="ts" x="537" y="184" text-anchor="middle" dominant-baseline="central">accept</text>
+          </g>
+        
+          <line x1="510" y1="196" x2="510" y2="220" stroke="var(--t)" stroke-width="1" marker-end="url(#arr2)"/>
+        
+          <g class="c-coral">
+            <rect x="390" y="220" width="90" height="44" rx="6" stroke-width="0.5"/>
+            <text class="th" x="435" y="236" text-anchor="middle" dominant-baseline="central">t₃ ✗</text>
+            <text class="ts" x="435" y="252" text-anchor="middle" dominant-baseline="central">reject</text>
+          </g>
+        
+          <text class="ts" x="474" y="240" dominant-baseline="central">replace with</text>
+          <g class="c-blue">
+            <rect x="560" y="220" width="70" height="44" rx="6" stroke-width="0.5"/>
+            <text class="th" x="595" y="236" text-anchor="middle" dominant-baseline="central">t₃'</text>
+            <text class="ts" x="595" y="252" text-anchor="middle" dominant-baseline="central">bonus</text>
+          </g>
+          <line x1="480" y1="242" x2="558" y2="242" stroke="#D85A30" stroke-width="1" marker-end="url(#arr2)"/>
+        
+          <text class="ts" x="510" y="288" text-anchor="middle">t₄ discarded (after first rejection)</text>
+        
+          <line x1="510" y1="295" x2="510" y2="318" stroke="var(--t)" stroke-width="1" marker-end="url(#arr2)"/>
+        
+          <g class="c-gray">
+            <rect x="380" y="318" width="260" height="44" rx="8" stroke-width="0.5"/>
+            <text class="th" x="510" y="340" text-anchor="middle" dominant-baseline="central">Output: t₁, t₂, t₃'  (+3 tokens)</text>
+          </g>
+        
+          <text class="ts" x="510" y="382" text-anchor="middle">3 tokens produced from 1 target forward pass</text>
+          <text class="ts" x="510" y="398" text-anchor="middle">distribution identical to target-only decoding</text>
+        </svg>
+        <div class="equation-note">Figure 1, one speculative decoding cycle. Draft generates 4 tokens; target verifies and accepts 2, rejects t₃ and provides a corrected replacement. t₄ is discarded.</div>
+        </div>
+        
+
+        <!-- <hr class="section-divider"> -->
+        
+        <h2>6. Practical Considerations</h2>
+        
+        <h3>When speculative decoding helps most</h3>
+        
+        <p>The technique shines on tasks where the next token is predictable: fluent prose continuation, code completion within a known style, translation of common phrases, and factual retrieval over familiar domains. Acceptance rates of 75–90% are common in these settings.</p>
+        
+        <h3>When it helps least</h3>
+        
+        <p>Speculative decoding degrades toward no benefit, and can even introduce overhead, when the draft model is poorly aligned with the target's distribution. Tasks that push the target model beyond the draft's competence fall into this category: highly technical reasoning chains, low-resource languages, and adversarial or out-of-distribution inputs. In the worst case, nearly every draft token is rejected, and you are paying the draft overhead for nothing.</p>
+        
+        <div class="callout-warn"><strong>Batch size caveat:</strong> Speculative decoding assumes the bottleneck is memory bandwidth, which holds for small batch sizes (1–8). At large batch sizes, the target model is already compute-bound and processes its batch efficiently without any batching tricks. The gains from speculative decoding shrink as the serving batch grows. It is most impactful for low-latency, low-batch settings, interactive chat, not high-throughput bulk inference.</div>
+        
+        <h3>KV cache management</h3>
+        
+        <p>When draft tokens are rejected mid-sequence, the key-value cache for those positions must be discarded. Modern implementations manage this efficiently by keeping the KV cache only for accepted tokens and appending after each verified cycle. The memory overhead is modest: the draft model maintains its own KV cache, which is proportionally smaller due to the smaller model size.</p>
+        
+        <hr class="section-divider">
+        
+        <h2>Putting It Together</h2>
+        
+        <p>Speculative decoding is one of the cleaner ideas in modern inference engineering. It works because LLM inference is memory-bound, not compute-bound, which means batching tokens together in a single target forward pass is nearly free. The draft model provides those tokens cheaply. The rejection sampling acceptance criterion guarantees losslessness. And the practical speedups of 2–3× make it compelling enough that most serious inference stacks, vLLM, TGI, TensorRT-LLM, ship some form of it as a default option.</p>
+        
+        <p>The deeper lesson is about the relationship between correctness and efficiency in probabilistic systems. The acceptance criterion is not a hack, it is a theorem. You can speculate aggressively, reject freely, and still guarantee that your output is indistinguishable from a model that never speculated at all. Efficiency and faithfulness do not have to trade off. Sometimes, with the right algorithm, you can have both.</p>
+        
+
+      <!-- <figure>
+        <img src="../../assets/diagram-transformer.jpg" alt="Annotated diagram of a transformer block showing residual stream, attention heads, and FFN" />
+        <figcaption>The transformer block: residual stream (left), multi-head attention projecting into subspaces, and the FFN acting as a key-value memory. Each layer refines the same residual vector.</figcaption>
+      </figure> -->
+
+    </article>
+
+    <!-- Post nav -->
+    <!-- <nav class="reads-post-nav" aria-label="Post navigation">
+      <a href="reads-rag.html" class="post-nav-link next">
+        <span class="post-nav-label">Next read</span>
+        <span class="post-nav-title">The Hidden Costs of RAG in Production</span>
+      </a>
+    </nav> -->
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="inner">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h2 class="font-display"><span class="brand-color">Let's build</span><br>the future,<br>together.</h2>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-label">Explore</p>
+          <ul>
+            <li><a href="../../reads.html">Reads</a></li>
+            <li><a href="../../architectures.html">Architectures</a></li>
+            <li><a href="../../system-design.html">System Design</a></li>
+            <li><a href="../../ml-design.html">ML Design</a></li>
+            <li><a href="../../about.html">About</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-label">Follow</p>
+          <ul>
+            <!-- <li><a href="https://www.youtube.com/" target="_blank" rel="noreferrer">YouTube</a></li> -->
+            <li><a href="https://www.linkedin.com/" target="_blank" rel="noreferrer">LinkedIn</a></li>
+            <li><a href="https://www.instagram.com/" target="_blank" rel="noreferrer">Instagram</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p id="footer-year">© 2026 Least Squares. All rights reserved.</p>
+        <p>Visual breakdowns of ML &amp; AI systems.</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+  document.getElementById('menuBtn').addEventListener('click', function() {
+    document.getElementById('mobileNav').classList.toggle('open');
+  });
+  document.getElementById('footer-year').textContent =
+    '© ' + new Date().getFullYear() + ' Least Squares. All rights reserved.';
+</script>
+<script>
+  const steps = [
+    {
+      label: "Step 1 / 5, context",
+      phase: "Starting context (prefix)",
+      desc: "The model has already generated these five tokens. This is our starting state before a speculative decoding cycle begins.",
+      tokens: [
+        {text:"The", cls:"context"},{text:"cat", cls:"context"},{text:"sat", cls:"context"},
+        {text:"on", cls:"context"},{text:"the", cls:"context"}
+      ]
+    },
+    {
+      label: "Step 2 / 5, draft",
+      phase: "Phase 1, draft model generates K = 4 tokens",
+      desc: "The small draft model runs autoregressively and proposes 4 candidate tokens quickly. These are cheap guesses, the draft model is ~10× smaller than the target.",
+      tokens: [
+        {text:"The", cls:"context"},{text:"cat", cls:"context"},{text:"sat", cls:"context"},
+        {text:"on", cls:"context"},{text:"the", cls:"context"},
+        {text:"mat", cls:"draft"},{text:"and", cls:"draft"},{text:"purred", cls:"draft"},{text:"softly", cls:"draft"}
+      ]
+    },
+    {
+      label: "Step 3 / 5, verify",
+      phase: "Phase 2, target model scores all 4 draft tokens in one pass",
+      desc: "The large target model runs a single batched forward pass over all 4 draft positions simultaneously. Because inference is memory-bandwidth bound, this costs roughly the same as scoring 1 token.",
+      tokens: [
+        {text:"The", cls:"context"},{text:"cat", cls:"context"},{text:"sat", cls:"context"},
+        {text:"on", cls:"context"},{text:"the", cls:"context"},
+        {text:"mat", cls:"draft"},{text:"and", cls:"draft"},{text:"purred", cls:"draft"},{text:"softly", cls:"draft"}
+      ]
+    },
+    {
+      label: "Step 4 / 5, accept/reject",
+      phase: "Phase 3, accept/reject via rejection sampling",
+      desc: "\"mat\" and \"and\" match the target's distribution, accepted. \"purred\" is rejected (target prefers \"lounged\"). \"softly\" is discarded. A bonus token is always sampled from the target at the first rejection position.",
+      tokens: [
+        {text:"The", cls:"context"},{text:"cat", cls:"context"},{text:"sat", cls:"context"},
+        {text:"on", cls:"context"},{text:"the", cls:"context"},
+        {text:"mat", cls:"accepted"},{text:"and", cls:"accepted"},
+        {text:"purred", cls:"rejected"},{text:"softly", cls:"rejected"},
+        {text:"lounged", cls:"bonus"}
+      ]
+    },
+    {
+      label: "Step 5 / 5, output",
+      phase: "Cycle complete, 3 new tokens from 1 target forward pass",
+      desc: "The accepted tokens (\"mat\", \"and\") plus the bonus token (\"lounged\") are appended. The target model produced 3 tokens while only running one forward pass. The next cycle begins here.",
+      tokens: [
+        {text:"The", cls:"context"},{text:"cat", cls:"context"},{text:"sat", cls:"context"},
+        {text:"on", cls:"context"},{text:"the", cls:"context"},
+        {text:"mat", cls:"accepted"},{text:"and", cls:"accepted"},{text:"lounged", cls:"target-only"}
+      ]
+    }
+  ];
+  
+  let currentStep = 0;
+  
+  function renderStep(idx) {
+    const s = steps[idx];
+    document.getElementById('phase-label').textContent = s.phase;
+    document.getElementById('phase-desc').textContent = s.desc;
+    document.getElementById('step-counter').textContent = s.label;
+    const row = document.getElementById('token-display');
+    row.innerHTML = '';
+    s.tokens.forEach(t => {
+      const span = document.createElement('span');
+      span.className = 'tok ' + t.cls;
+      span.textContent = t.text;
+      row.appendChild(span);
+    });
+    document.getElementById('next-btn').textContent = idx >= steps.length - 1 ? 'Done' : 'Next step ↗';
+    document.getElementById('next-btn').disabled = idx >= steps.length - 1;
+  }
+  
+  function nextStep() {
+    if (currentStep < steps.length - 1) {
+      currentStep++;
+      renderStep(currentStep);
+    }
+  }
+  
+  function resetDemo() {
+    currentStep = 0;
+    renderStep(0);
+    document.getElementById('next-btn').disabled = false;
+  }
+  
+  renderStep(0);
+  </script>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      }
+    };
+    </script>
+    
+    <script
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+</body>
+</html>

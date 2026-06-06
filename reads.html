@@ -274,12 +274,12 @@
       <a href="ml-design.html">ML Design</a>
       <a href="about.html">About</a>
     </nav>
-    <a href="https://www.youtube.com/" target="_blank" rel="noreferrer" class="subscribe-btn">
+    <!-- <a href="https://www.youtube.com/" target="_blank" rel="noreferrer" class="subscribe-btn">
       <span class="subscribe-label">Subscribe</span>
       <span class="icon-circle">
         <svg class="icon-arrow-right" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </span>
-    </a>
+    </a> -->
     <button class="mobile-menu-btn" id="menuBtn" aria-label="Toggle menu">
       <span></span><span></span><span></span>
     </button>
@@ -289,7 +289,7 @@
     <a href="system-design.html">System Design</a>
     <a href="ml-design.html">ML Design</a>
     <a href="about.html">About</a>
-    <a href="https://www.youtube.com/" target="_blank" rel="noreferrer">Subscribe →</a>
+    <!-- <a href="https://www.youtube.com/" target="_blank" rel="noreferrer">Subscribe →</a> -->
   </nav>
 </header>
 
@@ -330,7 +330,7 @@
     <div class="inner">
       <div class="footer-grid">
         <div class="footer-brand">
-          <h2 class="font-display">Let's build<br>the future,<br>together.</h2>
+          <h2 class="font-display"><span class="brand-color">Let's build</span><br>the future,<br>together.</h2>
         </div>
         <div class="footer-col">
           <p class="footer-col-label">Explore</p>
@@ -370,20 +370,20 @@
   // To add a new reads: copy one object, update the fields, save.
   const ESSAYS_DATA = [
     {
-      id: "reads-transformers",
-      slug: "reads/reads-transformers.html",
-      title: "Why Transformers Scale Better Than We Thought",
-      lede: "Exploring the quadratic bottleneck and the emergence of linear-time alternatives to the attention mechanism.",
+      id: "speculative-decoding",
+      slug: "reads/architectures/speculative-decoding.html",
+      title: "Speculative Decoding in LLMs",
+      lede: "How a cheap draft model and a fast verification pass can deliver full-quality output at a fraction of the latency.",
       tag: "Architecture",
       date: "2026-05-20",
       dateLabel: "May 20, 2026",
       readTime: "8 min read",
-      image: "assets/diagram-transformer.jpg",
-      imageAlt: "Transformer architecture diagram"
+      image: "assets/speculative-decoding-thumbnail.png",
+      imageAlt: "Speculative Decoding diagram"
     },
     {
       id: "reads-rag",
-      slug: "reads/reads-rag.html",
+      slug: "reads/ml-design/reads-rag.html",
       title: "The Hidden Costs of RAG in Production",
       lede: "Latency trade-offs between dense retrieval, semantic caching, and long-context models in production RAG systems.",
       tag: "Systems",

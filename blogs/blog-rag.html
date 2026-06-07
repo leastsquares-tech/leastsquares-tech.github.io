@@ -7,7 +7,7 @@
   <meta name="description" content="Latency trade-offs between dense retrieval, semantic caching, and long-context models." />
   <meta property="og:title" content="The Hidden Costs of RAG in Production" />
   <meta property="og:description" content="Latency trade-offs between dense retrieval, semantic caching, and long-context models." />
-  <meta property="og:image" content="assets/diagram-rag.jpg" />
+  <meta property="og:image" content="assets/reads-thumbnails/diagram-rag.jpg" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -64,7 +64,7 @@
       <p class="blog-subtitle">RAG demos are easy. Production RAG is a latency budget problem wrapped in an accuracy problem, wrapped in an infrastructure problem. Here's where the costs actually hide.</p>
 
       <div class="blog-cover">
-        <img src="assets/diagram-rag.jpg" alt="RAG pipeline architecture diagram" />
+        <img src="assets/reads-thumbnails/diagram-rag.jpg" alt="RAG pipeline architecture diagram" />
       </div>
     </section>
 
@@ -92,7 +92,7 @@
         <p>Steps 1–3 are fast enough in isolation. The problem is they're <em>serial</em>, they add latency variance, and step 3 in particular is deceptively expensive at scale.</p>
 
         <figure class="blog-diagram">
-          <img src="assets/diagram-rag.jpg" alt="RAG pipeline latency breakdown" />
+          <img src="assets/reads-thumbnails/diagram-rag.jpg" alt="RAG pipeline latency breakdown" />
           <figcaption>Fig 1. — A production RAG pipeline. Each stage adds latency; step 3 (re-ranking) is the most commonly underestimated.</figcaption>
         </figure>
 

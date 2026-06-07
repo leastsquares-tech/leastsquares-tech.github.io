@@ -8,6 +8,7 @@
   <meta name="description" content="Visual breakdowns of ML/AI architectures, system design, and production patterns." />
   <link rel="canonical" href="/reads" />
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
     /* ---- Reads index page ---- */
     .reads-page .reads-hero {
@@ -347,8 +348,8 @@
           <p class="footer-col-label">Follow</p>
           <ul>
             <!-- <li><a href="https://www.youtube.com/" target="_blank" rel="noreferrer">YouTube</a></li> -->
-            <li><a href="https://www.linkedin.com/company/least-squares" target="_blank" rel="noreferrer">LinkedIn</a></li>
-            <li><a href="https://www.instagram.com/leastsquaresindia?igsh=bHJ1dGNtOXZhd3dq&ut-m_source=qr" target="_blank" rel="noreferrer">Instagram</a></li>
+            <li><a href="https://www.linkedin.com/company/least-squares" target="_blank" rel="noreferrer"><i class="bi bi-linkedin" style="color: blue;"></i>&nbsp;&nbsp;LinkedIn</a></li>
+            <li><a href="https://www.instagram.com/leastsquaresindia?igsh=bHJ1dGNtOXZhd3dq&ut-m_source=qr" target="_blank" rel="noreferrer"><i class="bi bi-instagram" style="color:hotpink;"></i>&nbsp;&nbsp;Instagram</a></li>
           </ul>
         </div>
       </div>
@@ -379,19 +380,31 @@
       date: "2026-05-20",
       dateLabel: "June, 2026",
       readTime: "10 min read",
-      image: "assets/speculative-decoding-thumbnail.png",
+      image: "assets/reads-thumbnails/speculative-decoding-thumbnail.png",
       imageAlt: "Speculative Decoding diagram"
+    },
+    {
+      id: "inference-at-scale",
+      slug: "reads/system-design/inference-at-scale.html",
+      title: "Inference at Scale",
+      lede: "Batching strategies, KV caching, continuous batching, and the hard economics of serving large models to real users.",
+      tag: "System Design",
+      date: "2026-05-10",
+      dateLabel: "June, 2026",
+      readTime: "14 min read",
+      image: "assets/reads-thumbnails/inference-scale-thumbnail.png",
+      imageAlt: "Inference at scale system diagram"
     },
     {
       id: "reads-rag",
       slug: "reads/ml-design/reads-rag.html",
       title: "The Hidden Costs of RAG in Production",
       lede: "Latency trade-offs between dense retrieval, semantic caching, and long-context models in production RAG systems.",
-      tag: "Systems",
+      tag: "ML Design",
       date: "2026-05-10",
       dateLabel: "May 10, 2026",
       readTime: "5 min read",
-      image: "assets/diagram-rag.jpg",
+      image: "assets/reads-thumbnails/diagram-rag.jpg",
       imageAlt: "RAG pipeline diagram"
     }
   ];

@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 470" font-family="ui-sans-serif, system-ui, -apple-system, 'Inter', sans-serif">
+  <defs>
+    <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6f60f1"/>
+    </marker>
+  </defs>
+  <!-- title -->
+  <text x="440" y="34" text-anchor="middle" font-size="22" font-weight="700" fill="#111114">One voice turn: where the milliseconds go</text>
+  <text x="440" y="56" text-anchor="middle" font-size="13" fill="#111114" opacity="0.6">sequential just adds up; streaming overlaps stages so audio starts sooner</text>
+  <!-- ===== SEQUENTIAL (x0=120, 0.45 px/ms) ===== -->
+  <text x="120" y="92" font-size="13" font-weight="700" fill="#111114">Sequential</text>
+  <!-- segments: wake50 VAD80 ASR300 LLM600 TTS400 -->
+  <g>
+    <rect x="120" y="104" width="22.5" height="50" fill="#111114" fill-opacity="0.65"/>
+    <rect x="142.5" y="104" width="36" height="50" fill="#111114" fill-opacity="0.6"/>
+    <rect x="178.5" y="104" width="135" height="50" fill="#111114" fill-opacity="0.7"/>
+    <rect x="313.5" y="104" width="270" height="50" fill="#6f60f1"/>
+    <rect x="583.5" y="104" width="180" height="50" fill="#111114" fill-opacity="0.8"/>
+  </g>
+  <!-- stage labels inside bars -->
+  <text x="131" y="129" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="600" transform="rotate(-90 131 129)">wake</text>
+  <text x="160.5" y="129" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="600" transform="rotate(-90 160.5 129)">VAD</text>
+  <text x="246" y="133" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">ASR</text>
+  <text x="448" y="134" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="700">LLM</text>
+  <text x="673.5" y="133" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="600">TTS</text>
+  <!-- per-segment ms below the bar -->
+  <text x="131" y="170" font-size="10" fill="#111114" text-anchor="middle" opacity="0.7">50</text>
+  <text x="160.5" y="170" font-size="10" fill="#111114" text-anchor="middle" opacity="0.7">80</text>
+  <text x="246" y="170" font-size="10" fill="#111114" text-anchor="middle" opacity="0.7">300</text>
+  <text x="448.5" y="170" font-size="10" fill="#111114" text-anchor="middle" opacity="0.7">600</text>
+  <text x="673.5" y="170" font-size="10" fill="#111114" text-anchor="middle" opacity="0.7">400</text>
+  <!-- budget marker @1500ms -> x=795 -->
+  <line x1="795" y1="92" x2="795" y2="168" stroke="#6f60f1" stroke-width="2" stroke-dasharray="5 4"/>
+  <text x="800" y="118" font-size="12" font-weight="700" fill="#6f60f1">1.5 s</text>
+  <text x="800" y="134" font-size="12" font-weight="700" fill="#6f60f1">budget</text>
+  <text x="763.5" y="98" font-size="11" fill="#111114" text-anchor="end" opacity="0.7">Σ ≈ 1430 ms</text>
+  <!-- ===== STREAMING (overlapped) ===== -->
+  <text x="120" y="248" font-size="13" font-weight="700" fill="#111114">Streaming (overlapped)</text>
+  <!-- staggered translucent bars: wake[0,50] VAD[40,120] ASR[110,410] LLM[320,920] TTS[620,1020] -->
+  <g>
+    <rect x="120" y="262" width="22.5" height="22" rx="3" fill="#111114" fill-opacity="0.65"/>
+    <rect x="138" y="288" width="36" height="22" rx="3" fill="#111114" fill-opacity="0.6"/>
+    <rect x="169.5" y="262" width="135" height="22" rx="3" fill="#111114" fill-opacity="0.7"/>
+    <rect x="264" y="288" width="270" height="22" rx="3" fill="#6f60f1"/>
+    <rect x="399" y="262" width="180" height="22" rx="3" fill="#111114" fill-opacity="0.8"/>
+  </g>
+  <text x="131" y="277" font-size="7" fill="#ffffff" text-anchor="middle" font-weight="600">wake</text>
+  <text x="156" y="303" font-size="8" fill="#ffffff" text-anchor="middle" font-weight="600">VAD</text>
+  <text x="237" y="278" font-size="10" fill="#ffffff" text-anchor="middle">ASR</text>
+  <text x="399" y="304" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="700">LLM streams</text>
+  <text x="489" y="278" font-size="10" fill="#ffffff" text-anchor="middle">TTS</text>
+  <!-- first audio out marker @~700ms -> x=120+700*0.45=435 -->
+  <line x1="435" y1="318" x2="435" y2="338" stroke="#6f60f1" stroke-width="2" marker-end="url(#a2)"/>
+  <text x="435" y="354" font-size="12" font-weight="700" fill="#6f60f1" text-anchor="middle">▶ first audio out ≈ 700 ms</text>
+  <text x="435" y="370" font-size="11" fill="#111114" text-anchor="middle" opacity="0.6">(vs ~1030 ms before TTS even starts, sequential)</text>
+  <!-- time axis -->
+  <line x1="120" y1="404" x2="800" y2="404" stroke="#111114" stroke-width="1" opacity="0.4"/>
+  <text x="120" y="420" font-size="10" fill="#111114" opacity="0.6" text-anchor="middle">0</text>
+  <text x="345" y="420" font-size="10" fill="#111114" opacity="0.6" text-anchor="middle">500</text>
+  <text x="570" y="420" font-size="10" fill="#111114" opacity="0.6" text-anchor="middle">1000</text>
+  <text x="795" y="420" font-size="10" fill="#111114" opacity="0.6" text-anchor="middle">1500 ms</text>
+  <text x="120" y="452" font-size="11" fill="#111114" opacity="0.55">illustrative; real per-stage numbers measured in Part 2</text>
+</svg>

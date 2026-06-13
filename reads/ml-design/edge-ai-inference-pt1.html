@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reads | The Edge Inference Stack: A Field Map</title>
+  <link rel="icon" href="../../assets/logo/lslogo.ico">
+  <meta name="description" content="The five constraints that define edge AI, the one equation that governs the whole stack, and a survey of the three layers where the real decisions get made." />
+  <meta property="og:title" content="The Edge Inference Stack: A Field Map, Least Squares" />
+  <meta property="og:description" content="The five constraints that define edge AI, the one equation that governs the whole stack, and a survey of the three layers where the real decisions get made." />
+  <meta property="og:image" content="../../assets/edge-inference-thumbnail.png" />
+  <link rel="canonical" href="/edge-ai-inference-pt1" />
+  <link rel="stylesheet" href="../../styles.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+
+<style>
+  code {
+    font-family: 'Inter';
+    font-size: 0.82em;
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    color: #7F77DD;
+  }
+
+  .callout {
+    border-left: 3px solid #378ADD;
+    background: var(--surface2);
+    border-radius: 0 8px 8px 0;
+    padding: 1rem 1.25rem;
+    margin: 1.75rem 0;
+    font-style: italic;
+    font-size: 0.97rem;
+    color: var(--ink2);
+  }
+  .callout strong { font-style: normal; color: #185FA5; }
+
+  .callout-warn {
+    border-left: 3px solid #BA7517;
+    background: var(--surface2);
+    border-radius: 0 8px 8px 0;
+    padding: 1rem 1.25rem;
+    margin: 1.75rem 0;
+    font-style: italic;
+    font-size: 0.97rem;
+    color: var(--ink2);
+  }
+  .callout-warn strong { font-style: normal; color: #854F0B; }
+
+  .callout-green {
+    border-left: 3px solid #10B981;
+    background: var(--surface2);
+    border-radius: 0 8px 8px 0;
+    padding: 1rem 1.25rem;
+    margin: 1.75rem 0;
+    font-style: italic;
+    font-size: 0.97rem;
+    color: var(--ink2);
+  }
+  .callout-green strong { font-style: normal; color: #065F46; }
+
+  .equation {
+    font-family: 'Inter';
+    font-size: 0.9rem;
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0;
+    color: var(--ink);
+    line-height: 1.9;
+    overflow-x: auto;
+    text-align: center;
+  }
+
+  .equation-note {
+    margin: 0.75rem 0 0;
+    color: #64748b;
+    font-size: 0.95rem;
+    font-style: italic;
+  }
+
+  .diagram-wrap {
+    margin: 2rem 0;
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: 12px;
+    padding: 1.25rem 1rem 0.75rem;
+  }
+
+  .interactive-demo {
+    margin: 3rem 0;
+    border: 0.5px solid var(--border2);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .demo-header {
+    padding: 0.75rem 1.25rem;
+    border-bottom: 0.5px solid var(--border);
+    font-family: 'Inter';
+    font-size: 12px;
+    color: var(--ink3);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .demo-body { padding: 1.25rem; }
+
+  .stat-row { display: flex; gap: 1rem; margin: 1.5rem 0; flex-wrap: wrap; }
+  .stat-card { flex: 1; min-width: 120px; background: var(--surface2); border-radius: 8px; padding: 0.875rem 1rem; border: 0.5px solid var(--border); }
+  .stat-card .num { font-family: 'Inter'; font-size: 1.1rem; font-weight: 500; color: #7F77DD; }
+  .stat-card .lbl { font-family: var(--font-sans); font-size: 12px; color: var(--ink3); margin-top: 2px; }
+
+  .section-divider { border: none; border-top: 0.5px solid var(--border); margin: 2.5rem 0; }
+
+  .phase-label {
+    font-family: 'Inter';
+    font-size: 11px;
+    color: var(--ink3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+  }
+  .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 1rem; padding-top: 0.75rem; border-top: 0.5px solid var(--border); }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-family: 'Inter'; font-size: 11px; color: var(--ink2); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* constraint cards */
+  .constraint-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 12px;
+    margin: 1.5rem 0;
+  }
+  .constraint-card {
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+  }
+  .constraint-card .c-title {
+    font-family: 'Inter';
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .constraint-card .c-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .constraint-card p {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--ink2);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* device spectrum bar */
+  .spectrum-bar {
+    display: flex;
+    align-items: stretch;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 0.5px solid var(--border2);
+    margin: 1.25rem 0;
+    font-family: 'Inter';
+    font-size: 11px;
+  }
+  .spectrum-seg {
+    flex: 1;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    border-right: 0.5px solid var(--border2);
+  }
+  .spectrum-seg:last-child { border-right: none; }
+  .spectrum-seg .seg-name { font-weight: 600; font-size: 12px; }
+  .spectrum-seg .seg-sub  { color: var(--ink3); font-size: 10px; line-height: 1.4; }
+
+  /* roofline chart */
+  .roofline-wrap {
+    margin: 1.75rem 0;
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: 12px;
+    padding: 1.25rem 1rem 0.75rem;
+  }
+
+  /* hardware compute unit diagram */
+  .hw-diagram {
+    margin: 1.75rem 0;
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: 12px;
+    padding: 1.25rem 1rem 0.75rem;
+    overflow-x: auto;
+  }
+
+  /* runtime engine table */
+  .engine-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin: 1.25rem 0;
+  }
+  .engine-card {
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+  }
+  .engine-card .e-name {
+    font-family: 'Inter';
+    font-size: 13px;
+    font-weight: 600;
+    color: #7F77DD;
+    margin-bottom: 4px;
+  }
+  .engine-card .e-desc {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    color: var(--ink3);
+    line-height: 1.5;
+  }
+
+  /* compare table */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Inter';
+    font-size: 13px;
+    margin: 1.25rem 0;
+  }
+  .compare-table th {
+    background: var(--surface2);
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--ink);
+    border: 0.5px solid var(--border2);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .compare-table td {
+    padding: 8px 12px;
+    border: 0.5px solid var(--border);
+    color: var(--ink2);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .compare-table tr:nth-child(even) td { background: var(--surface2); }
+
+  /* pipeline diagram */
+  .pipeline-wrap {
+    margin: -1.5rem 0;
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: 12px;
+    padding: 1.25rem 1rem 0.75rem;
+    overflow-x: auto;
+  }
+
+  /* series badge */
+  .series-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2);
+    border: 0.5px solid var(--border2);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-family: 'Inter';
+    font-size: 11px;
+    color: var(--ink3);
+    letter-spacing: 0.04em;
+    margin-bottom: 0.75rem;
+  }
+  .series-badge span { color: #7F77DD; font-weight: 600; }
+
+  :root { --t: #64748b; }
+  svg text { font-family: 'Inter', sans-serif; }
+  svg .th { font-size: 12px; font-weight: 600; }
+  svg .ts { font-size: 10px; fill: var(--t); }
+
+  .c-purple rect { fill: #F3F1FF; stroke: #7F77DD; }
+  .c-purple text { fill: #7F77DD; }
+  .c-blue rect { fill: #EEF6FF; stroke: #378ADD; }
+  .c-blue text { fill: #378ADD; }
+  .c-teal rect { fill: #ECFDF5; stroke: #10B981; }
+  .c-teal text { fill: #10B981; }
+  .c-coral rect { fill: #FFF1ED; stroke: #D85A30; }
+  .c-coral text { fill: #D85A30; }
+  .c-gray rect { fill: #F8FAFC; stroke: #64748B; }
+  .c-gray text { fill: #475569; }
+  .c-amber rect { fill: #FFFBEB; stroke: #D97706; }
+  .c-amber text { fill: #92400E; }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 1.8rem; }
+    .stat-row { flex-direction: column; }
+    .constraint-grid { grid-template-columns: 1fr; }
+    .spectrum-bar { flex-direction: column; }
+    .spectrum-seg { border-right: none; border-bottom: 0.5px solid var(--border2); }
+    .spectrum-seg:last-child { border-bottom: none; }
+  }
+</style>
+
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="inner">
+    <a href="../../index.html" class="logo font-display">
+      Least <span class="brand-color">Squares</span>
+    </a>
+    <nav>
+      <a href="../../reads.html">Reads</a>
+      <a href="../../architectures.html">Architectures</a>
+      <a href="../../system-design.html">System Design</a>
+      <a href="../../ml-design.html">ML Design</a>
+      <a href="../../about.html">About</a>
+    </nav>
+    <button class="mobile-menu-btn" id="menuBtn" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="../../reads.html">Reads</a>
+    <a href="../../architectures.html">Architectures</a>
+    <a href="../../system-design.html">System Design</a>
+    <a href="../../ml-design.html">ML Design</a>
+    <a href="../../about.html">About</a>
+  </nav>
+</header>
+
+<!-- MAIN -->
+<div class="page-wrapper reads-page">
+  <main>
+
+    <!-- Hero -->
+    <section class="reads-hero">
+      <a href="../../reads.html" class="reads-back">
+        <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Visual Reads
+      </a>
+      <div class="reads-meta-top">
+        <span class="reads-tag-pill">Systems</span>
+        <span class="reads-date">June 2026 · 12 min read</span>
+      </div>
+      <!-- <div class="series-badge">Part <span>1</span> of the Edge AI Inference series</div> -->
+      <h1 class="editorial-headline">The Edge Inference Stack: A Field Map</h1>
+      <p class="reads-lede">
+        <strong>Part 1</strong> of a series on edge AI inference. This part is the map and the physics. The parts that follow go
+measured, on hardware I own, with public models, profiling every metric defined here.
+      </p>
+      <p class="reads-byline">By Senthil Kumar N</p>
+    </section>
+
+    <!-- Cover image -->
+    <div class="reads-cover">
+      <img src="../../assets/reads-thumbnails/edge-ai-inference-pt1.png" alt="Edge AI inference stack diagram" />
+    </div>
+
+    <!-- Body -->
+    <article class="reads-content">
+
+      <p>
+        Almost everything written about LLM inference quietly assumes a datacenter. Elastic memory,
+        hundreds of gigabytes per second of bandwidth, batches of thousands of requests amortizing every
+        weight read, a power budget measured in kilowatts. Move the same model onto a phone, a Jetson, or a
+        microcontroller and the assumptions invert one by one. You cannot scale out. You cannot batch – there
+        is one user, and they are waiting. The chip throttles after thirty seconds because there is no fan. The
+        weights do not fit.
+      </p>
+      <p>
+        <strong>Edge inference is not cloud inference scaled down.</strong> It’s a different regime with a different
+        bottleneck, and the techniques that win are tuned to it. This series is about that regime. This first part
+        draws the map: the constraints that define the edge, the single piece of physics that governs the whole
+        stack, the vocabulary we will measure everything against, and a survey of the three layers (hardware,
+        runtime, model) where the real decisions get made. Later parts replace every borrowed number here
+        with the one I measured myself.
+      </p>
+
+      <h2>1. The Five Constraints That Define "Edge"</h2>
+      <p>
+        Everything downstream follows from five constraints. Each is the inverse of a luxury the cloud takes for granted.
+      </p>
+
+      <div class="constraint-grid">
+        <div class="constraint-card">
+          <div class="c-title"><div class="c-dot" style="background:#7F77DD;"></div>Memory ceiling</div>
+          <p>Device RAM is fixed and shared with the OS and the rest of the app. A model only runs if its weights fit. A 7B model needs ~14 GB at FP16 but only ~3.5 GB at 4-bit, on an 8 GB phone, quantization is what decides whether the model loads at all, not a nice-to-have speedup.</p>
+        </div>
+        <div class="constraint-card">
+          <div class="c-title"><div class="c-dot" style="background:#378ADD;"></div>Memory bandwidth</div>
+          <p>Once a model fits, the speed limit is how fast its weights stream from DRAM into the compute units. Generating one token reads every weight once but does only ~2 ops per weight. Compute finishes long before the next weights arrive.</p>
+        </div>
+        <div class="constraint-card">
+          <div class="c-title"><div class="c-dot" style="background:#D85A30;"></div>Power &amp; thermal budget</div>
+          <p>Edge devices run on a battery and cool passively. Performance you can hit for one burst is not performance you can sustain. After the SoC heats up, clocks drop and your latency quietly doubles. A benchmark that runs cold looks great and ships broken.</p>
+        </div>
+        <div class="constraint-card">
+          <div class="c-title"><div class="c-dot" style="background:#10B981;"></div>Latency &amp; real-time</div>
+          <p>There is no network round-trip to hide behind and a human on the other end. Interactive work lives under hard budgets: a voice turn that feels instant has a few hundred milliseconds total for the whole pipeline.</p>
+        </div>
+        <div class="constraint-card">
+          <div class="c-title"><div class="c-dot" style="background:#64748B;"></div>Privacy &amp; offline</div>
+          <p>Often the entire reason to be on-device: the data never leaves, and it works in a tunnel with no signal. This is a product constraint that forces all the engineering ones above.</p>
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>A caveat on scope:</strong> "Edge" is a spectrum, not a point, from a Cortex-M microcontroller with kilobytes of SRAM, to a phone SoC, to a Jetson-class module with tens of GB/s of bandwidth. The five constraints hold across all of it, but their <em>numbers</em> differ by orders of magnitude.
+      </div>
+
+      <p>The device spectrum, from constrained to capable:</p>
+
+      <div class="spectrum-bar">
+        <div class="spectrum-seg" style="background:#F3F1FF; border-color: #AFA9EC;">
+          <div class="seg-name" style="color:#3C3489;">Cortex-M MCU</div>
+          <div class="seg-sub">kB of SRAM · TinyML territory · CPU only</div>
+        </div>
+        <div class="spectrum-seg" style="background:#EEF6FF; border-color: #85B7EB;">
+          <div class="seg-name" style="color:#0C447C;">Phone SoC</div>
+          <div class="seg-sub">Snapdragon / Tensor / Apple A-series · unified LPDDR · NPU · 60–100 GB/s</div>
+        </div>
+        <div class="spectrum-seg" style="background:#ECFDF5; border-color: #5DCAA5;">
+          <div class="seg-name" style="color:#085041;">Apple Silicon</div>
+          <div class="seg-sub">Large unified memory · ~100+ GB/s · CPU + GPU + ANE</div>
+        </div>
+        <div class="spectrum-seg" style="background:#FFFBEB; border-color: #FCD34D;">
+          <div class="seg-name" style="color:#92400E;">Jetson Orin</div>
+          <div class="seg-sub">Discrete-GPU-like · ~68 GB/s · CUDA at the edge</div>
+        </div>
+      </div>
+      <p style="font-family:'Inter';font-size:11px;color:var(--ink3);margin-top:-0.5rem;">Raspberry Pi 5 sits below this spectrum at ~17 GB/s, pure CPU, no GPU offload for matmul.</p>
+
+      <h2>2. The Governing Physics: One Equation for the Whole Stack</h2>
+      <p>
+        The thesis everything else rests on: <strong>single-stream LLM decoding is bound by memory bandwidth, not by compute.</strong> With that in hand, most of the edge toolkit stops looking like a grab-bag of tricks and starts looking like a single idea applied in different places.
+      </p>
+
+      <p>
+        <strong>Why decode is memory-bound.</strong>Generate one token at batch size one, and the forward pass must read <em>every weight in the model exactly once</em> to produce that single token. The arithmetic per weight is tiny, one multiply-accumulate, about 2 floating-point operations. Define <strong>arithmetic intensity</strong> as useful work per byte moved:
+      </p>
+
+      <div class="equation">
+        $$\text{intensity} = \frac{\text{FLOPs}}{\text{bytes moved}} \approx \frac{2\text{ FLOPs/weight}}{\text{bytes/weight}}$$
+
+        <div class="equation-note">FP16 weights (2 bytes): intensity ≈ 1 FLOP/byte &nbsp;·&nbsp; INT4 weights (0.5 bytes): intensity ≈ 4 FLOP/byte</div>
+      </div>
+
+      <p>
+        Place that on the roofline (Williams, Waterman &amp; Patterson, 2009). Attainable performance is min(peak compute, intensity × bandwidth). Modern accelerators have a ridge point, the intensity at which compute and bandwidth balance, that sits in the tens to low hundreds of FLOP/byte. Single-stream decode, at ~1–4 FLOP/byte, sits <em>far to the left</em> of that ridge: deep in the bandwidth-limited region. The expensive silicon for matrix math mostly idles, waiting on DRAM.
+      </p>
+
+      <!-- Roofline diagram -->
+      <div class="roofline-wrap">
+        <div style="font-family:'Inter';font-size:12px;font-weight:600;color:var(--ink);text-align:center;margin-bottom:4px;">Why on-device decode is memory-bound</div>
+        <div style="font-family:'Inter';font-size:11px;color:var(--ink3);text-align:center;margin-bottom:14px;">single-stream decode sits far left of the ridge, bandwidth-limited, not compute-limited</div>
+        <svg width="100%" viewBox="0 0 620 300" role="img" aria-label="Roofline model diagram showing single-stream decode far left of the ridge in the memory-bound region">
+
+          <!-- Axes -->
+          <line x1="60" y1="260" x2="580" y2="260" stroke="var(--t)" stroke-width="1"/>
+          <line x1="60" y1="260" x2="60" y2="30"  stroke="var(--t)" stroke-width="1"/>
+
+          <!-- Axis labels -->
+          <text x="320" y="285" text-anchor="middle" class="ts">arithmetic intensity (FLOP / byte, log scale) →</text>
+          <text x="18" y="145" text-anchor="middle" class="ts" transform="rotate(-90,18,145)">attainable performance (tokens/s, log) →</text>
+
+          <!-- X tick labels (log scale: 0.25, 1, 4, 16, 64, 256) -->
+          <text x="92"  y="273" text-anchor="middle" class="ts">0.25</text>
+          <text x="178" y="273" text-anchor="middle" class="ts">1</text>
+          <text x="264" y="273" text-anchor="middle" class="ts">4</text>
+          <text x="350" y="273" text-anchor="middle" class="ts">16</text>
+          <text x="436" y="273" text-anchor="middle" class="ts">64</text>
+          <text x="522" y="273" text-anchor="middle" class="ts">256</text>
+
+          <!-- Y tick labels (log: 1, 8, 64, 512) -->
+          <text x="52" y="248" text-anchor="end" class="ts">1</text>
+          <text x="52" y="195" text-anchor="end" class="ts">8</text>
+          <text x="52" y="140" text-anchor="end" class="ts">64</text>
+          <text x="52" y="86"  text-anchor="end" class="ts">512</text>
+
+          <!-- Grid lines -->
+          <line x1="60" y1="248" x2="580" y2="248" stroke="var(--border)" stroke-width="0.4" stroke-dasharray="3 3"/>
+          <line x1="60" y1="195" x2="580" y2="195" stroke="var(--border)" stroke-width="0.4" stroke-dasharray="3 3"/>
+          <line x1="60" y1="140" x2="580" y2="140" stroke="var(--border)" stroke-width="0.4" stroke-dasharray="3 3"/>
+          <line x1="60" y1="86"  x2="580" y2="86"  stroke="var(--border)" stroke-width="0.4" stroke-dasharray="3 3"/>
+          <line x1="92"  y1="260" x2="92"  y2="30" stroke="var(--border)" stroke-width="0.4" stroke-dasharray="3 3"/>
+          <line x1="178" y1="260" x2="178" y2="30" stroke="var(--border)" stroke-width="0.4" stroke-dasharray="3 3"/>
+          <line x1="264" y1="260" x2="264" y2="30" stroke="var(--border)" stroke-width="0.4" stroke-dasharray="3 3"/>
+          <line x1="350" y1="260" x2="350" y2="30" stroke="var(--border)" stroke-width="0.4" stroke-dasharray="3 3"/>
+          <line x1="436" y1="260" x2="436" y2="30" stroke="var(--border)" stroke-width="0.4" stroke-dasharray="3 3"/>
+
+          <!-- Bandwidth roof line (slope = 1 in log space): from (0.25, ~8) to ridge (64, ~512) -->
+          <!-- In SVG coords: x maps 0.25→92, 256→522 (log); y maps 512→86, 1→248 (log, inverted) -->
+          <!-- bandwidth line from bottom-left to ridge point -->
+          <line x1="92" y1="248" x2="436" y2="86" stroke="#378ADD" stroke-width="1.5"/>
+          <!-- compute roof line (flat) from ridge to right -->
+          <line x1="436" y1="86" x2="580" y2="86" stroke="#378ADD" stroke-width="1.5"/>
+
+          <!-- Bandwidth roof label -->
+          <text transform="rotate(-25, 200, 200)" x="250" y="225" class="ts" style="fill:#378ADD;">bandwidth roof: P = BW · I</text>
+
+          <!-- Compute roof label -->
+          <text x="445" y="78" class="ts" style="fill:#378ADD;font-weight:600;">compute roof (peak FLOP/s)</text>
+
+          <!-- Ridge point -->
+          <circle cx="436" cy="86" r="5" fill="#000000"/>
+          <text x="380" y="75" class="ts" style="fill:#000000;font-weight:600;">ridge point</text>
+
+          <!-- Region labels -->
+          <text x="190" y="50" text-anchor="middle" class="ts" style="fill:#0C447C;font-weight:600;font-size:12px;">MEMORY-BOUND</text>
+          <text x="500" y="50" text-anchor="middle" class="ts" style="fill:#085041;font-weight:600;font-size:12px;">COMPUTE-BOUND</text>
+
+          <!-- divider between regions -->
+          <line x1="436" y1="260" x2="436" y2="30" stroke="var(--t)" stroke-width="0.5" stroke-dasharray="5 3" opacity="0.5"/>
+
+          <!-- FP16 point (~x=178, intensity=1), y mapped to where bandwidth line is at x=1 -->
+          <!-- At intensity=1, tokens/s on bandwidth line ≈ BW/(model bytes). Illustrative y = 195 -->
+          <circle cx="178" cy="206" r="6" fill="#7F77DD"/>
+          <text x="83" y="190" class="ts" style="fill:#7F77DD;font-weight:600;">FP16 ≈ 1 FLOP/byte</text>
+          <text x="83" y="202" class="ts" style="fill:#7F77DD;">~29 tok/s ceiling</text>
+
+          <!-- INT4 point (~x=264, intensity=4), y = 140 (4× faster) -->
+          <circle cx="264" cy="166" r="6" fill="#008622"/>
+          <text transform="rotate(0, 200, 200)" x="179" y="135" class="ts" style="fill:#008622;font-weight:600;">INT4 ≈ 4 FLOP/byte</text>
+          <text transform="rotate(0, 200, 200)" x="179" y="147" class="ts" style="fill:#008622;">~118 tok/s ceiling</text>
+
+          <!-- Prefill point, compute-bound region -->
+          <circle cx="510" cy="105" r="6" fill="#b94010"/>
+          <text x="525" y="107" class="ts" style="fill:#b94010;font-weight:600;">prefill</text>
+          <text x="525" y="121" class="ts" style="fill:#b94010;">(compute-bound)</text>
+
+          <!-- "single-stream decode lives here" annotation -->
+          <rect x="74" y="218" width="150" height="22" rx="4" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+          <text x="149" y="229" text-anchor="middle" dominant-baseline="central" style="font-family:'Inter';font-size:10px;font-weight:600;fill:#3C3489;">single-stream decode lives here</text>
+
+        </svg>
+        <div class="equation-note" style="text-align:center;">Figure 1, Roofline model. Single-stream decode (~1–4 FLOP/byte) sits far left of the ridge: bandwidth-bound, not compute-bound. Schematic; axis values illustrative.</div>
+      </div>
+
+      <p>
+        In the bandwidth-limited region, the achievable lower bound on per-token latency is just:
+      </p>
+
+      <div class="equation">
+        $$t_\text{token} \approx \frac{\text{model bytes read}}{\text{memory bandwidth}}$$
+      </div>
+
+      <p>
+        A worked example (published specs only, I’ll measure the real gap in Part 2): Take a 1.7B-parameter model on a device with ~100 GB/s of LPDDR5 bandwidth.
+      </p>
+
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Precision</th>
+            <th>Weight bytes</th>
+            <th>÷ 100 GB/s</th>
+            <th>Ceiling</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>FP16 (2 B/param)</td>
+            <td>~3.4 GB</td>
+            <td>~34 ms/token</td>
+            <td>~29 tok/s</td>
+          </tr>
+          <tr>
+            <td>INT4 (0.5 B/param)</td>
+            <td>~0.85 GB</td>
+            <td>~8.5 ms/token</td>
+            <td>~118 tok/s</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        Two things follow. First, quantizing FP16 to INT4 moves 4× fewer bytes and buys ~4× faster decode, <em>in this regime</em>. Second, these are ceilings, you never hit peak bandwidth (60–80% is typical), KV-cache reads add traffic as context grows, and the OS competes for the same bus. The gap between this clean number and what you actually measure on hardware is what Part 2 is about.
+      </p>
+
+      <div class="stat-row">
+        <div class="stat-card"><div class="num">~60–85</div><div class="lbl">GB/s, current flagship phone</div></div>
+        <div class="stat-card"><div class="num">~100</div><div class="lbl">GB/s, entry Apple Silicon</div></div>
+        <div class="stat-card"><div class="num">~68</div><div class="lbl">GB/s, Jetson Orin Nano</div></div>
+        <div class="stat-card"><div class="num">~17</div><div class="lbl">GB/s, Raspberry Pi 5</div></div>
+      </div>
+
+      <div class="callout-warn">
+        <strong>Prefill vs. decode:</strong> this is the decode phase at batch size 1. Prefill (processing the prompt) runs in
+        parallel across many tokens, so it’s compute-bound, and so is batched server inference.
+        Mixing up the two is the most common cost-model mistake I see. The memory-bound story
+        is the edge story because the edge basically lives at batch size one. At scale you can climb
+        back toward compute-bound by batching many requests together, which is what the
+        datacenter does <em>(we covered that side well in <a style="color: #185FA5;" href="./inference-at-scale.html">Inference at Scale</a>)</em>. On
+        the edge you don’t get that lever: one user means batch size one, so memory bandwidth
+        stays the ceiling. That is part of what makes edge inference its own problem. (For the IO-
+        aware view of attention, see FlashAttention; for the full datacenter latency math, Pope et
+        al.)
+      </div>
+
+      <h2>3. The Vocabulary: What We Measure, and What It Means</h2>
+      <p>
+        Every later part in this series reports these metrics. It is worth pinning them down once up front.
+      </p>
+
+      <div class="constraint-grid">
+        <div class="constraint-card">
+          <div class="c-title"><div class="c-dot" style="background:#378ADD;"></div>TTFT</div>
+          <p><strong>Time to first token.</strong> Wall-clock from request to first output token. In a pipeline it's a sum, in a voice cascade, "first token" is really first audio out, and TTFT is the sum of every upstream stage.</p>
+        </div>
+        <div class="constraint-card">
+          <div class="c-title"><div class="c-dot" style="background:#7F77DD;"></div>TPOT / inter-token latency</div>
+          <p><strong>Time per output token.</strong> Time between successive tokens once generation is flowing. This is the memory-bound number from Sec. 2. TTFT and TPOT are different costs and must be reported separately.</p>
+        </div>
+        <div class="constraint-card">
+          <div class="c-title"><div class="c-dot" style="background:#10B981;"></div>Throughput</div>
+          <p><strong>Tokens per second, sustained.</strong> On the edge, "sustained" is the word that matters. A cold-start burst number tells you nothing about steady-state performance after thermal throttling kicks in.</p>
+        </div>
+        <div class="constraint-card">
+          <div class="c-title"><div class="c-dot" style="background:#D85A30;"></div>Peak memory footprint</div>
+          <p><strong>Maximum resident set.</strong> Weights + KV cache + activations + runtime overhead. This is what determines fits/doesn't fit against the Sec. 1 memory ceiling.</p>
+        </div>
+        <div class="constraint-card">
+          <div class="c-title"><div class="c-dot" style="background:#D97706;"></div>Energy per token</div>
+          <p><strong>Joules per token (or mWh per turn).</strong> On battery this matters as much as latency. A model that is fast but draws 3W kills a session in minutes.</p>
+        </div>
+        <div class="constraint-card">
+          <div class="c-title"><div class="c-dot" style="background:#64748B;"></div>Thermal throttle point</div>
+          <p><strong>How long until clocks drop.</strong> How long until sustained load forces a clock reduction, and what latency looks like after that. A benchmark that runs cold ships broken.</p>
+        </div>
+      </div>
+
+      <div class="callout-warn">
+        <strong>Always report p50 and p95, never just the mean.</strong> On passively-cooled hardware the average is a lie: it blends a fast cold start with a slow throttled steady state into a number that describes neither. The tail is the user experience.
+      </div>
+
+      <hr class="section-divider">
+
+      <h2>4. Layer 1: The Hardware</h2>
+      <p>
+        The compute on an edge SoC is heterogeneous, and each unit wins at something different. Understanding which unit handles which workload, and the tradeoffs of each, is the first hardware decision.
+      </p>
+      <p>
+        <strong>CPU</strong>: flexible, great for control flow and the messy glue (audio framing, tokenization,
+        sampling). Lowest throughput for dense matmul. Tradeoff: universal and simple, but leaves
+        performance on the table for the heavy tensor work.
+      </p>
+      <p>
+        <strong>GPU</strong>: strong parallel throughput, the common target for on-device LLM matmuls via
+        Metal/Vulkan/OpenCL. Tradeoff: good general accelerator, but shares the same DRAM bus.
+        Sec. 2 still rules.
+      </p>
+      <p>
+        <strong>NPU/DSP</strong>: purpose-built for dense low-precision matmul at very high perf-per-watt. Tradeoff:
+        fastest and most efficient when the op maps cleanly, and brutal when it doesn’t. Dynamic
+        shapes, unusual ops, and control flow fall back to CPU and erase the win.
+      </p>
+      <div class="callout">
+        “NPU” isn’t a magic word. NPUs are built for static-shape INT8/INT4 matmul; dynamic
+        sequence lengths and exotic operators fall off the fast path. Whether your model is NPU-
+        friendly is really a property of the graph, decided long before you deploy.
+      </div>
+
+      <!-- Hardware compute unit diagram -->
+      <div class="hw-diagram">
+        <div style="font-family:'Inter';font-size:12px;font-weight:600;color:var(--ink);text-align:center;margin-bottom:4px;">One shared bus, many compute units</div>
+        <div style="font-family:'Inter';font-size:11px;color:var(--ink3);text-align:center;margin-bottom:16px;">Whatever units a device has, they all pull weights through one memory bus, bandwidth is the bottleneck</div>
+
+        <svg width="100%" viewBox="0 0 640 260" role="img" aria-label="Edge SoC compute unit diagram showing CPU, GPU, and NPU all sharing one DRAM bus">
+          <defs>
+            <marker id="arr-hw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M2 1L8 5L2 9" fill="none" stroke="#64748b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </marker>
+          </defs>
+
+          <!-- CPU box -->
+          <g class="c-purple">
+            <rect x="40" y="30" width="155" height="74" rx="8" stroke-width="0.5"/>
+            <text x="117" y="54" text-anchor="middle" class="th">CPU</text>
+            <text x="117" y="70" text-anchor="middle" class="ts" style="fill:#7F77DD;">glue · tokenize · sampling</text>
+            <text x="117" y="84" text-anchor="middle" class="ts" style="fill:#7F77DD;">always present</text>
+          </g>
+
+          <!-- GPU box -->
+          <g class="c-blue">
+            <rect x="240" y="30" width="155" height="74" rx="8" stroke-width="0.5"/>
+            <text x="317" y="54" text-anchor="middle" class="th">GPU</text>
+            <text x="317" y="70" text-anchor="middle" class="ts" style="fill:#378ADD;">LLM decode · ASR</text>
+            <text x="317" y="84" text-anchor="middle" class="ts" style="fill:#378ADD;">OpenCL / Vulkan / Metal</text>
+          </g>
+
+          <!-- NPU box -->
+          <g class="c-teal">
+            <rect x="440" y="30" width="155" height="74" rx="8" stroke-width="0.5"/>
+            <text x="517" y="54" text-anchor="middle" class="th">NPU / DSP</text>
+            <text x="517" y="70" text-anchor="middle" class="ts" style="fill:#10B981;">wake-word · VAD</text>
+            <text x="517" y="84" text-anchor="middle" class="ts" style="fill:#10B981;">phones only (varies)</text>
+          </g>
+
+          <!-- Weight reads label -->
+          <text x="317" y="128" text-anchor="middle" class="ts">weight reads · LLM ≈ 0.85 GB @INT4</text>
+
+          <!-- Arrows down from all units to bus -->
+          <line x1="117" y1="104" x2="117" y2="158" stroke="#7F77DD" stroke-width="1" marker-end="url(#arr-hw)"/>
+          <line x1="317" y1="104" x2="317" y2="158" stroke="#378ADD" stroke-width="1" marker-end="url(#arr-hw)"/>
+          <line x1="517" y1="104" x2="517" y2="158" stroke="#10B981" stroke-width="1" marker-end="url(#arr-hw)"/>
+
+          <!-- DRAM bus -->
+          <rect x="40" y="158" width="555" height="48" rx="8" fill="#FFF7ED" stroke="#D97706" stroke-width="0.5"/>
+          <text x="317" y="178" text-anchor="middle" class="th" style="fill:#92400E;">DRAM · LPDDR5 · SHARED</text>
+          <text x="317" y="194" text-anchor="middle" class="ts" style="fill:#D97706;">~X GB/s, every stage competes for the same bandwidth</text>
+
+          <!-- Bottleneck label -->
+          <text x="600" y="182" text-anchor="start" class="ts" style="fill:#D85A30;font-weight:600;">← the</text>
+          <text x="590" y="192" text-anchor="start" class="ts" style="fill:#D85A30;font-weight:600;">bottleneck</text>
+
+          <!-- Device mapping note -->
+          <rect x="40" y="222" width="555" height="30" rx="6" style="fill:#e6d3ff;" stroke="#310072" stroke-width="0.5" stroke-dasharray="4 3"/>
+          <text x="317" y="237" text-anchor="middle" class="ts">Raspberry Pi 5 → CPU-only &nbsp;·&nbsp; most laptops → CPU + GPU &nbsp;·&nbsp; flagship phone → CPU + GPU + NPU</text>
+        </svg>
+        <div class="equation-note" style="text-align:center;">Figure 2, Every compute unit shares one DRAM bus, so bandwidth sets the ceiling. Stage-to-unit mapping shown is one phone-class SoC example; it varies by device.</div>
+      </div>
+
+      <p>
+        The device spectrum (placing Sec. 1 on real silicon): microcontrollers (Cortex-M, kB of SRAM;
+        TinyML territory) to phone SoCs (Snapdragon/Tensor/Apple, unified LPDDR, dedicated NPU) to
+        Apple Silicon (large unified memory, high memory bandwidth) to Jetson-class modules (discrete-GPU
+        like, tens of GB/s). The same model is a different engineering problem at each stop. And they don’t all
+        carry the same kinds of compute: a Raspberry Pi is effectively CPU-only, most laptops are CPU+GPU,
+        and phones reliably add an NPU/DSP, so “which unit runs what” is device-specific, not a fixed rule.
+      </p>
+
+      <h2>5. Layer 2: The Runtime / Engine</h2>
+      <p>
+        Between a model file and a token sits the inference engine, and it does far more than "run the math." Graph compilation folds many small ops into fewer fused kernels, cutting memory round-trips. Delegate selection routes each op to CPU, GPU, or NPU and picks a kernel for the shapes and precision. Memory planning pre-allocates a reusable arena so inference doesn't allocate on the hot path. KV-cache management stores past keys and values so decode is incremental, and on the edge, its growth with context is a real share of both memory and bandwidth.
+      </p>
+
+      <div class="engine-grid">
+        <div class="engine-card">
+          <div class="e-name">llama.cpp / ggml</div>
+          <div class="e-desc">The de-facto CPU/edge LLM runtime. GGUF format, broad quant support, runs nearly everywhere from Pi to phone.</div>
+        </div>
+        <div class="engine-card">
+          <div class="e-name">ONNX Runtime</div>
+          <div class="e-desc">Portable cross-platform graph execution with a wide delegate ecosystem across CPU, GPU, and NNAPI.</div>
+        </div>
+        <div class="engine-card">
+          <div class="e-name">ExecuTorch</div>
+          <div class="e-desc">PyTorch's on-device runtime for mobile and embedded export. Direct path from a PyTorch model to a phone.</div>
+        </div>
+        <div class="engine-card">
+          <div class="e-name">LiteRT (TFLite)</div>
+          <div class="e-desc">Google's mobile runtime. Mature NNAPI, GPU, and Hexagon delegates. Wide Android support.</div>
+        </div>
+        <div class="engine-card">
+          <div class="e-name">MLC-LLM</div>
+          <div class="e-desc">Compiler-driven (TVM) LLM deployment across GPUs and phones. Aggressive kernel generation for specific targets.</div>
+        </div>
+        <div class="engine-card">
+          <div class="e-name">TensorRT-LLM</div>
+          <div class="e-desc">NVIDIA's high-performance stack. Jetson Orin at the edge end; full datacenter stack at the other.</div>
+        </div>
+        <div class="engine-card">
+          <div class="e-name">Cactus</div>
+          <div class="e-desc">A newer engine aimed at IoT and mobile. Low RAM overhead, model-agnostic, targeting constrained hardware.</div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>The runtime is where Sec. 2's ceiling meets reality.</strong> Fusion quality, kernel selection, and cache layout decide how close you actually get to the roofline. That gap between ceiling and runtime is measurable, Part 2 measures it.
+      </div>
+
+      <h2>6. Layer 3: The Model and Compression</h2>
+      <p>
+        This is the layer with the most levers, and Sec. 2 tells you which ones actually move latency. Because decode is memory-bound, anything that reduces bytes-per-weight is a direct, proportional speed multiplier.
+      </p>
+
+      <p>
+        <strong>Quantization</strong> is the headline edge technique, fundamentally a bandwidth decision. Fewer bits per weight means fewer bytes moved per token, which Sec. 2 turns directly into speed and into fitting the Sec. 1 ceiling at all. PTQ (post-training quantization) is cheap and fast; QAT (quantization-aware training) is costlier but better at low bit-widths. Common formats include GGUF k-quants (e.g., Q4_K_M) for llama.cpp, NF4 from QLoRA, weight-only PTQ via GPTQ and AWQ, and activation handling via LLM.int8() and SmoothQuant. The honest cost: quality degrades as bits drop, unevenly across tasks, reasoning and rare tokens suffer first. The 4x speedup is real; so is the loss. Measure it; a later part does.
+      </p>
+
+      <p>
+        <strong>Distillation and pruning</strong> train a small student model to mimic a larger teacher and remove weights or structure, shrinking model bytes directly. <strong>Efficient architectures</strong> like MobileLLM are sub-billion parameter LLMs designed for devices; Mamba and SSM-hybrid models trade quadratic attention for linear-time recurrence, cutting the KV-cache and long-context bandwidth tax. <strong>Memory-mapping</strong> streams weights from flash when they exceed RAM (Apple's <em>LLM in a flash</em>), trading bandwidth and latency for footprint.
+      </p>
+
+      <div class="callout-green">
+        <strong>Speculative decoding at the edge:</strong> A cheap draft model proposes several tokens; the target verifies them in one pass. Lossless by construction, and it pays off precisely in the low-batch, memory-bound edge regime, the same regime that makes everything else hard. The acceptance math is covered in detail in our <a href="../speculative-decoding/index.html">Speculative Decoding</a> deep-dive; this series will measure it on-device.
+      </div>
+
+      <hr class="section-divider">
+
+      <h2>7. Following a Single Voice Turn Through the Stack</h2>
+      <p>
+        The pipeline below is a representative on-device cascade, the standard pattern shared by voice
+        assistants generally, not any specific product. Stage timings are illustrative until the measured parts.
+      </p>
+      <p>
+        Everything above sits in isolation until you wire it into a real product, and the clearest example is an
+        on-device voice assistant, because it isn’t one model, it’s a little pipeline of them. Your latency budget
+        is just whatever they add up to. One voice turn flows like this:
+      </p>
+      <p>
+        Each component spends a slice of the Sec. 3 budget, and each one is shaped by the choices from Sec. 4-
+        6. The wake-word and VAD models are tiny and always listening, so on a phone they sit on the
+        NPU/DSP or else CPU, while on a Pi or laptop they’d just run on the CPU (Sec. 4). STT and the LLM
+        are the heavy stages: this is where your quantization and runtime picks (Sec. 5-6) decide whether the
+        thing even fits in memory. TTS time-to-first-audio is what the user actually feels as “did it answer me?”
+      </p>
+
+    <svg width="100%" viewBox="0 0 640 80" role="img" aria-label="Cascading voice assistant pipeline diagram">
+        <!-- Section labels -->
+        <text x="15" y="15" class="ts" style="font-weight:600;fill:var(--ink);">Cascading voice assistant pipeline</text>
+
+        <!-- === SEQUENTIAL === -->
+        <!-- Wake -->
+        <rect x="80"  y="38" width="40"  height="30" rx="4" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+        <text x="100" y="53" text-anchor="middle" dominant-baseline="central" style="font-family:'Inter';font-size:9px;fill:#3C3489;font-weight:600;">Wake</text>
+
+        <text x="135" y="53" text-anchor="middle" dominant-baseline="central" style="font-family:'Inter';font-size:9px;fill:#3C3489;font-weight:600;">-></text>
+
+        <!-- VAD -->
+        <rect x="150" y="38" width="40"  height="30" rx="4" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+        <text x="170" y="53" text-anchor="middle" dominant-baseline="central" style="font-family:'Inter';font-size:9px;fill:#3C3489;font-weight:600;">VAD</text>
+
+        <text x="205" y="53" text-anchor="middle" dominant-baseline="central" style="font-family:'Inter';font-size:9px;fill:#3C3489;font-weight:600;">-></text>
+
+        <!-- ASR -->
+        <rect x="220" y="38" width="40" height="30" rx="4" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+        <text x="240" y="53" text-anchor="middle" dominant-baseline="central" style="font-family:'Inter';font-size:10px;fill:#0C447C;font-weight:600;">ASR</text>
+
+        <text x="275" y="53" text-anchor="middle" dominant-baseline="central" style="font-family:'Inter';font-size:9px;fill:#3C3489;font-weight:600;">-></text>
+
+        <!-- LLM -->
+        <rect x="290" y="38" width="40" height="30" rx="4" fill="#7F77DD" stroke="#534AB7" stroke-width="0.5"/>
+        <text x="310" y="53" text-anchor="middle" dominant-baseline="central" style="font-family:'Inter';font-size:10px;fill:#fff;font-weight:600;">LLM</text>
+
+        <text x="345" y="53" text-anchor="middle" dominant-baseline="central" style="font-family:'Inter';font-size:9px;fill:#3C3489;font-weight:600;">-></text>
+
+        <!-- TTS -->
+        <rect x="360" y="38" width="40" height="30" rx="4" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+        <text x="380" y="53" text-anchor="middle" dominant-baseline="central" style="font-family:'Inter';font-size:10px;fill:#0C447C;font-weight:600;">TTS</text>
+    </svg>
+    <figure>
+        <img src="../../assets/reads-figures/edge-ai-inference-pt1/fig2-latency-budget.svg" alt="RAG pipeline showing query embedding, ANN retrieval, re-ranking and generation stages with latency annotations" />
+        <figcaption>A voice turn's latency is the sum of its stages; the slowest sets what the user feels.
+            Timings illustrative.</figcaption>
+    </figure> 
+      <p>
+        The wake-word and VAD models are tiny and always listening, on a phone they sit on the NPU/DSP or CPU, while on a Pi or laptop they run on CPU. STT and the LLM are the heavy stages: this is where your quantization and runtime picks decide whether the thing fits in memory at all. TTS time-to-first-audio is what the user actually feels as "did it answer me?"
+      </p>
+      <p>
+        In a pipeline, TTFT is not a single number; it is a sum. "First audio out" only happens once every upstream stage has done its part, so your slowest box sets the experience, and the Sec. 2 memory-bound physics runs underneath all of them.
+      </p>
+
+      <hr class="section-divider">
+
+      <h2>8. What's Next</h2>
+      <p>
+        This part gave you the map and the one equation that ties it together. The map is worth little without the territory, so the rest of the series goes measured. Part 2 starts where Sec. 2 ended: how far does a real runtime fall from the roofline ceiling, and why, TTFT and its pipeline decomposition, TPOT, throughput, peak memory, energy per token, and the thermal throttle point, all with p50/p95, stated device, stated quant, and stated sequence length.
+      </p>
+
+      <div class="callout">
+        <strong>Related reading:</strong> For the datacenter side of this memory-bound story, continuous batching, PagedAttention, and the economics of serving at scale, see <a href="../inference-at-scale/index.html">Inference at Scale</a>. For the acceptance-sampling math behind speculative decoding referenced in Sec. 6, see <a href="../speculative-decoding/index.html">Speculative Decoding in LLMs</a>.
+      </div>
+    </article>
+
+    <!-- Post nav -->
+    <nav class="reads-post-nav" aria-label="Post navigation">
+      <a href="../system-design/inference-at-scale.html" class="post-nav-link next">
+        <span class="post-nav-label">Related reads</span>
+        <span class="post-nav-title">Inference at Scale</span>
+        <span class="post-nav-title">Speculative Decoding in LLMs</span>
+      </a>
+    </nav>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="inner">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h2 class="font-display"><span class="brand-color">Let's build</span><br>the future,<br>together.</h2>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-label">Explore</p>
+          <ul>
+            <li><a href="../../reads.html">Reads</a></li>
+            <li><a href="../../architectures.html">Architectures</a></li>
+            <li><a href="../../system-design.html">System Design</a></li>
+            <li><a href="../../ml-design.html">ML Design</a></li>
+            <li><a href="../../about.html">About</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <p class="footer-col-label">Follow</p>
+          <ul>
+            <!-- <li><a href="https://www.youtube.com/" target="_blank" rel="noreferrer">YouTube</a></li> -->
+            <li><a href="https://www.linkedin.com/company/least-squares" target="_blank" rel="noreferrer"><i class="bi bi-linkedin" style="color: blue;"></i>&nbsp;&nbsp;LinkedIn</a></li>
+            <li><a href="https://www.instagram.com/leastsquares.in?igsh=bHJ1dGNtOXZhd3dq&utm_source=qr" target="_blank" rel="noreferrer"><i class="bi bi-instagram" style="color:hotpink;"></i>&nbsp;&nbsp;Instagram</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p id="footer-year">© 2026 Least Squares. All rights reserved.</p>
+        <p>Visual breakdowns of ML &amp; AI systems.</p>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+  document.getElementById('menuBtn').addEventListener('click', function() {
+    document.getElementById('mobileNav').classList.toggle('open');
+  });
+  document.getElementById('footer-year').textContent =
+    '© ' + new Date().getFullYear() + ' Least Squares. All rights reserved.';
+</script>
+
+<script>
+  window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+</body>
+</html>

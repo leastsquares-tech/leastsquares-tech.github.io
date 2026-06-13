@@ -606,7 +606,7 @@ measured, on hardware I own, with public models, profiling every metric defined 
         Mixing up the two is the most common cost-model mistake I see. The memory-bound story
         is the edge story because the edge basically lives at batch size one. At scale you can climb
         back toward compute-bound by batching many requests together, which is what the
-        datacenter does <em>(we covered that side well in <a style="color: #185FA5;" href="./inference-at-scale.html">Inference at Scale</a>)</em>. On
+        datacenter does <em>(we covered that side well in <a style="color: #185FA5;" href="../system-design/inference-at-scale.html">Inference at Scale</a>)</em>. On
         the edge you don’t get that lever: one user means batch size one, so memory bandwidth
         stays the ceiling. That is part of what makes edge inference its own problem. (For the IO-
         aware view of attention, see FlashAttention; for the full datacenter latency math, Pope et
@@ -881,9 +881,8 @@ measured, on hardware I own, with public models, profiling every metric defined 
 
     <!-- Post nav -->
     <nav class="reads-post-nav" aria-label="Post navigation">
-      <a href="../system-design/inference-at-scale.html" class="post-nav-link next">
-        <span class="post-nav-label">Related reads</span>
-        <span class="post-nav-title">Inference at Scale</span>
+      <a href="../architectures/speculative-decoding.html" class="post-nav-link next">
+        <span class="post-nav-label">Related read</span>
         <span class="post-nav-title">Speculative Decoding in LLMs</span>
       </a>
     </nav>
